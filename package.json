@@ -10,7 +10,7 @@
     "prettier:write": "prettier . --write"
   },
   "keywords": [],
-  "author": "Adriano_Posumah <adrianoposumah@gmail.com>",
+  "author": "adrianoposumah <adrianoposumah@gmail.com>",
   "license": "ISC",
   "devDependencies": {
     "@babel/preset-env": "^7.26.9",
