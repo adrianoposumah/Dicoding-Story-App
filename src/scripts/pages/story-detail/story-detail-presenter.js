@@ -65,19 +65,15 @@ export default class StoryDetailPresenter {
   initializeMap(lat, lon, name, mapElement) {
     if (!mapElement) return null;
 
-    // Fix Leaflet icon paths
     this.fixLeafletIconPaths();
 
-    // Create map
     const map = L.map(mapElement).setView([lat, lon], 13);
 
-    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // Add marker with popup
     const marker = L.marker([lat, lon]).addTo(map);
     marker
       .bindPopup(`<b>${name}'s Story</b><br>Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}`)
@@ -87,7 +83,6 @@ export default class StoryDetailPresenter {
   }
 
   fixLeafletIconPaths() {
-    // Fix the Leaflet icon paths that might be broken due to webpack bundling
     delete L.Icon.Default.prototype._getIconUrl;
 
     L.Icon.Default.mergeOptions({

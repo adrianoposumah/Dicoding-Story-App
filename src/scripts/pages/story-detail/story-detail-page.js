@@ -39,34 +39,34 @@ export default class StoryDetailPage {
       <section class="container mx-auto px-8 py-10">
         <div id="story-detail-container" class="max-w-4xl mx-auto">
           <div class="page-transition">
-            <a href="#/" class="inline-flex items-center gap-1 mb-6 text-primary hover:underline">
-              <i data-feather="arrow-left" class="w-4 h-4"></i> Back to stories
+            <a href="#/" class="inline-flex items-center gap-1 mb-6 text-primary hover:underline" aria-label="Back to stories list">
+              <i data-feather="arrow-left" class="w-4 h-4" aria-hidden="true"></i> Back to stories
             </a>
             
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <article class="bg-white rounded-lg shadow-lg overflow-hidden">
               <div class="relative h-[40vh] overflow-hidden bg-gray-100">
                 <img 
                   src="${cachedImageUrl || ''}" 
-                  alt="Story image" 
+                  alt="Story illustration" 
                   class="w-full h-full object-cover image-fade-in ${cachedImageUrl ? 'loaded' : ''}"
                   id="story-image"
                   data-story-id="${this.storyId}"
                   ${this.supportsViewTransition ? `style="view-transition-name: ${storyTransitionName};"` : ''}
                 >
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" aria-hidden="true"></div>
               </div>
               
-              <div id="story-content" class="p-6">
-                <div class="flex flex-col items-center py-8">
-                  <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div id="story-content" class="p-6" aria-live="polite">
+                <div class="flex flex-col items-center py-8" role="status" aria-label="Loading story details">
+                  <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" aria-hidden="true"></div>
                   <p class="mt-4 text-lg text-secondary">Loading story details...</p>
                 </div>
               </div>
               
               <div id="map-container" class="hidden">
-                <div id="story-map" class="h-[300px] w-full"></div>
+                <div id="story-map" class="h-[300px] w-full" aria-label="Map showing the story location"></div>
               </div>
-            </div>
+            </article>
           </div>
         </div>
       </section>
@@ -92,7 +92,7 @@ export default class StoryDetailPage {
       if (this.error) {
         if (storyContent) {
           storyContent.innerHTML = `
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
               <p>${this.error}</p>
             </div>
           `;
@@ -103,7 +103,7 @@ export default class StoryDetailPage {
       if (!this.story) {
         if (storyContent) {
           storyContent.innerHTML = `
-            <div class="text-center">
+            <div class="text-center" role="status">
               <p class="text-lg text-secondary mb-4">Story not found</p>
             </div>
           `;
@@ -119,7 +119,7 @@ export default class StoryDetailPage {
           storyImage.src === window.location.href)
       ) {
         storyImage.src = this.story.photoUrl;
-        storyImage.alt = `${this.story.name}'s story`;
+        storyImage.alt = `Story image shared by ${this.story.name}`;
       }
 
       if (storyContent) {
@@ -130,7 +130,7 @@ export default class StoryDetailPage {
             ${this.story.name}'s Story
           </h1>
           <p class="text-sm text-gray-500 mb-6">
-            ${showFormattedDate(this.story.createdAt)}
+            <time datetime="${new Date(this.story.createdAt).toISOString()}">${showFormattedDate(this.story.createdAt)}</time>
           </p>
           
           <div class="prose max-w-none mb-6">
@@ -142,10 +142,10 @@ export default class StoryDetailPage {
               ? `
           <div class="mb-4">
             <h2 class="inline-flex items-center gap-2 text-xl font-semibold text-secondary mb-2">
-              <i data-feather="map-pin" class="w-5 h-5"></i> Location
+              <i data-feather="map-pin" class="w-5 h-5" aria-hidden="true"></i> Location
             </h2>
             <p class="text-sm text-secondary mb-2">
-              Coordinates: ${this.story.lat.toFixed(4)}, ${this.story.lon.toFixed(4)}
+              Coordinates: <span aria-label="Latitude ${this.story.lat.toFixed(4)}, Longitude ${this.story.lon.toFixed(4)}">${this.story.lat.toFixed(4)}, ${this.story.lon.toFixed(4)}</span>
             </p>
           </div>
           `

@@ -26,7 +26,6 @@ export default class Map {
 
     const jakartaCoordinate = [-6.2, 106.816666];
 
-    // Using Geolocation API
     if ('locate' in options && options.locate) {
       try {
         const position = await Map.getCurrentPosition();

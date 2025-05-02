@@ -23,151 +23,169 @@ export default class AddStoryPage {
 
   async render() {
     return `
-      <section class="container mx-auto px-8 py-10">
-        <div class="max-w-3xl mx-auto">
-          <div class="flex items-center justify-between mb-8">
-            <h1 class="text-2xl font-bold text-secondary">Add New Story</h1>
-            <a href="#/" class="inline-flex items-center gap-2 text-primary hover:underline">
-              <i data-feather="arrow-left" class="w-4 h-4"></i> Back to stories
-            </a>
-          </div>
-          
-          <div class="bg-white rounded-lg shadow-lg p-6">
-            <div id="alert-container" class="mb-6 hidden">
-              <div id="alert" class="p-4 rounded"></div>
+      <transition-wrapper animation-type="flip" duration="500">
+        <section class="container mx-auto px-8 py-10">
+          <div class="max-w-3xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+              <h1 class="text-2xl font-bold text-secondary">Add New Story</h1>
+              <a href="#/" class="inline-flex items-center gap-2 text-primary hover:underline" aria-label="Go back to stories list">
+                <i data-feather="arrow-left" class="w-4 h-4" aria-hidden="true"></i> Back to stories
+              </a>
             </div>
             
-            <form id="add-story-form" class="space-y-6">
-              <!-- Story Description -->
-              <div>
-                <label for="description" class="block text-sm font-medium text-secondary mb-2">
-                  Description <span class="text-red-500">*</span>
-                </label>
-                <textarea 
-                  id="description" 
-                  name="description" 
-                  rows="4" 
-                  required
-                  placeholder="Share your story..." 
-                  class="w-full p-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
-                ></textarea>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+              <div id="alert-container" class="mb-6 hidden" aria-live="assertive">
+                <div id="alert" class="p-4 rounded" role="alert"></div>
               </div>
               
-              <!-- Photo Upload -->
-              <div class="space-y-4">
-                <label class="block text-sm font-medium text-secondary mb-2">
-                  Photo <span class="text-red-500">*</span>
-                </label>
+              <form id="add-story-form" class="space-y-6" novalidate>
+                <!-- Story Description -->
+                <div>
+                  <label for="description" class="block text-sm font-medium text-secondary mb-2">
+                    Description <span class="text-red-500" aria-hidden="true">*</span>
+                    <span class="sr-only">(required)</span>
+                  </label>
+                  <textarea 
+                    id="description" 
+                    name="description" 
+                    rows="4" 
+                    required
+                    placeholder="Share your story..." 
+                    class="w-full p-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary"
+                    aria-required="true"
+                  ></textarea>
+                </div>
                 
-                <div class="flex flex-col md:flex-row gap-4">
-                  <!-- Camera Capture -->
-                  <div class="w-full md:w-1/2 space-y-3">
-                    <div class="bg-gray-100 rounded-lg overflow-hidden">
-                      <video 
-                        id="camera-preview" 
-                        autoplay 
-                        playsinline 
-                        muted
-                        class="w-full h-52 object-cover hidden"
-                      ></video>
-                      <div 
-                        id="camera-placeholder" 
-                        class="w-full h-52 flex items-center justify-center"
-                      >
-                        <p class="text-gray-500 text-center">Camera preview will appear here</p>
+                <!-- Photo Upload -->
+                <fieldset class="space-y-4">
+                  <legend class="block text-sm font-medium text-secondary mb-2">
+                    Photo <span class="text-red-500" aria-hidden="true">*</span>
+                    <span class="sr-only">(required)</span>
+                  </legend>
+                  
+                  <div class="flex flex-col md:flex-row gap-4">
+                    <!-- Camera Capture -->
+                    <div class="w-full md:w-1/2 space-y-3">
+                      <div class="bg-gray-100 rounded-lg overflow-hidden">
+                        <video 
+                          id="camera-preview" 
+                          autoplay 
+                          playsinline 
+                          muted
+                          class="w-full h-52 object-cover hidden"
+                          aria-label="Camera video preview"
+                        ></video>
+                        <div 
+                          id="camera-placeholder" 
+                          class="w-full h-52 flex items-center justify-center"
+                          aria-label="Camera preview placeholder"
+                        >
+                          <p class="text-gray-500 text-center">Camera preview will appear here</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-3">
+                        <button 
+                          type="button" 
+                          id="start-camera-button"
+                          class="flex-1 inline-flex justify-center items-center gap-2 py-2 px-4 bg-secondary text-white text-sm rounded-md hover:bg-secondary/80 transition-colors"
+                          aria-label="Start or stop camera"
+                        >
+                          <i data-feather="video" class="w-4 h-4" aria-hidden="true"></i> Start Camera
+                        </button>
+                        <button 
+                          type="button" 
+                          id="capture-photo-button"
+                          class="flex-1 inline-flex justify-center items-center gap-2 py-2 px-4 bg-primary text-white text-sm rounded-md hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled
+                          aria-label="Capture photo from camera"
+                        >
+                          <i data-feather="camera" class="w-4 h-4" aria-hidden="true"></i> Capture
+                        </button>
                       </div>
                     </div>
-                    <div class="flex gap-3">
-                      <button 
-                        type="button" 
-                        id="start-camera-button"
-                        class="flex-1 inline-flex justify-center items-center gap-2 py-2 px-4 bg-secondary text-white text-sm rounded-md hover:bg-secondary/80 transition-colors"
+                    
+                    <!-- File Upload or Preview -->
+                    <div class="w-full md:w-1/2 space-y-3">
+                      <div 
+                        id="photo-preview-container" 
+                        class="hidden bg-gray-100 rounded-lg overflow-hidden h-52 relative"
+                        aria-live="polite"
                       >
-                        <i data-feather="video" class="w-4 h-4"></i> Start Camera
-                      </button>
-                      <button 
-                        type="button" 
-                        id="capture-photo-button"
-                        class="flex-1 inline-flex justify-center items-center gap-2 py-2 px-4 bg-primary text-white text-sm rounded-md hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled
+                        <img 
+                          id="photo-preview" 
+                          src="#" 
+                          alt="Your selected photo preview" 
+                          class="w-full h-full object-cover"
+                        >
+                        <button 
+                          type="button" 
+                          id="remove-photo-button"
+                          class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                          aria-label="Remove selected photo"
+                        >
+                          <i data-feather="x" class="w-4 h-4" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                      <div 
+                        id="upload-placeholder" 
+                        class="border-2 border-dashed border-gray-300 rounded-lg p-4 h-52 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                        role="button"
+                        tabindex="0"
+                        aria-label="Click to upload a photo from your device"
+                        aria-controls="photo-upload"
                       >
-                        <i data-feather="camera" class="w-4 h-4"></i> Capture
-                      </button>
+                        <i data-feather="upload" class="w-8 h-8 text-gray-400 mb-2" aria-hidden="true"></i>
+                        <p class="text-sm text-gray-500 text-center">Click to upload or drag and drop</p>
+                        <p class="text-xs text-gray-400 mt-1">Max 1MB, JPEG, PNG</p>
+                        <input 
+                          type="file" 
+                          id="photo-upload" 
+                          name="photo" 
+                          accept="image/*" 
+                          class="hidden"
+                          aria-label="Upload photo"
+                        >
+                      </div>
                     </div>
                   </div>
-                  
-                  <!-- File Upload or Preview -->
-                  <div class="w-full md:w-1/2 space-y-3">
-                    <div 
-                      id="photo-preview-container" 
-                      class="hidden bg-gray-100 rounded-lg overflow-hidden h-52 relative"
+                </fieldset>
+                
+                <!-- Location (Map) -->
+                <fieldset class="space-y-4">
+                  <legend class="block text-sm font-medium text-secondary mb-2">
+                    Location (Optional)
+                  </legend>
+                  <div id="map" class="h-[300px] w-full rounded-lg shadow-md" aria-label="Interactive map for selecting location" tabindex="0"></div>
+                  <div id="location-info" class="text-sm text-gray-600 hidden" aria-live="polite">
+                    <p>Selected coordinates: <span id="coordinates-display">None</span></p>
+                    <button 
+                      type="button" 
+                      id="clear-location-button"
+                      class="text-red-500 hover:underline mt-1"
+                      aria-label="Clear selected location"
                     >
-                      <img 
-                        id="photo-preview" 
-                        src="#" 
-                        alt="Photo preview" 
-                        class="w-full h-full object-cover"
-                      >
-                      <button 
-                        type="button" 
-                        id="remove-photo-button"
-                        class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
-                      >
-                        <i data-feather="x" class="w-4 h-4"></i>
-                      </button>
-                    </div>
-                    <div 
-                      id="upload-placeholder" 
-                      class="border-2 border-dashed border-gray-300 rounded-lg p-4 h-52 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                    >
-                      <i data-feather="upload" class="w-8 h-8 text-gray-400 mb-2"></i>
-                      <p class="text-sm text-gray-500 text-center">Click to upload or drag and drop</p>
-                      <p class="text-xs text-gray-400 mt-1">Max 1MB, JPEG, PNG</p>
-                      <input 
-                        type="file" 
-                        id="photo-upload" 
-                        name="photo" 
-                        accept="image/*" 
-                        class="hidden"
-                      >
-                    </div>
+                      Clear location
+                    </button>
                   </div>
-                </div>
-              </div>
-              
-              <!-- Location (Map) -->
-              <div class="space-y-4">
-                <label class="block text-sm font-medium text-secondary mb-2">
-                  Location (Optional)
-                </label>
-                <div id="map" class="h-[300px] w-full rounded-lg shadow-md"></div>
-                <div id="location-info" class="text-sm text-gray-600 hidden">
-                  <p>Selected coordinates: <span id="coordinates-display">None</span></p>
+                </fieldset>
+                
+                <!-- Submit Button -->
+                <div>
                   <button 
-                    type="button" 
-                    id="clear-location-button"
-                    class="text-red-500 hover:underline mt-1"
+                    type="submit" 
+                    id="submit-button"
+                    class="w-full inline-flex justify-center items-center gap-2 py-3 px-4 bg-primary text-white font-medium rounded-md hover:bg-secondary transition-colors"
+                    aria-label="${this.isLoggedIn ? 'Post story as a logged in user' : 'Post story as a guest'}"
                   >
-                    Clear location
+                    <i data-feather="upload-cloud" class="w-5 h-5" aria-hidden="true"></i>
+                    ${this.isLoggedIn ? 'Post Story' : 'Post Story as Guest'}
                   </button>
                 </div>
-              </div>
-              
-              <!-- Submit Button -->
-              <div>
-                <button 
-                  type="submit" 
-                  id="submit-button"
-                  class="w-full inline-flex justify-center items-center gap-2 py-3 px-4 bg-primary text-white font-medium rounded-md hover:bg-secondary transition-colors"
-                >
-                  <i data-feather="upload-cloud" class="w-5 h-5"></i>
-                  ${this.isLoggedIn ? 'Post Story' : 'Post Story as Guest'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </transition-wrapper>
     `;
   }
 
@@ -197,6 +215,7 @@ export default class AddStoryPage {
       alertContainer.classList.remove('hidden');
       alertElement.textContent = message;
       alertElement.className = `p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+      alertElement.setAttribute('role', 'alert');
 
       alertContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
@@ -220,9 +239,11 @@ export default class AddStoryPage {
         this.videoElement = cameraPreview;
 
         capturePhotoButton.disabled = false;
+        capturePhotoButton.setAttribute('aria-disabled', 'false');
 
         startCameraButton.innerHTML =
-          '<i data-feather="video-off" class="w-4 h-4"></i> Stop Camera';
+          '<i data-feather="video-off" class="w-4 h-4" aria-hidden="true"></i> Stop Camera';
+        startCameraButton.setAttribute('aria-label', 'Stop camera');
         feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
       } catch (error) {
         console.error('Error accessing camera:', error);
@@ -258,7 +279,8 @@ export default class AddStoryPage {
             this.stopCamera();
 
             startCameraButton.innerHTML =
-              '<i data-feather="video" class="w-4 h-4"></i> Start Camera';
+              '<i data-feather="video" class="w-4 h-4" aria-hidden="true"></i> Start Camera';
+            startCameraButton.setAttribute('aria-label', 'Start camera');
             feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
           },
           'image/jpeg',
@@ -272,6 +294,14 @@ export default class AddStoryPage {
 
     uploadPlaceholder.addEventListener('click', () => {
       photoUpload.click();
+    });
+
+    // Also make it keyboard accessible
+    uploadPlaceholder.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        photoUpload.click();
+      }
     });
 
     photoUpload.addEventListener('change', (event) => {
@@ -339,7 +369,9 @@ export default class AddStoryPage {
       }
 
       submitButton.disabled = true;
-      submitButton.innerHTML = '<span class="animate-spin mr-2">⟳</span> Posting...';
+      submitButton.setAttribute('aria-busy', 'true');
+      submitButton.innerHTML =
+        '<span class="animate-spin mr-2" aria-hidden="true">⟳</span> Posting...';
 
       try {
         const storyData = {
@@ -386,7 +418,8 @@ export default class AddStoryPage {
         showAlert('An unexpected error occurred. Please try again.', true);
       } finally {
         submitButton.disabled = false;
-        submitButton.innerHTML = `<i data-feather="upload-cloud" class="w-5 h-5"></i> ${this.isLoggedIn ? 'Post Story' : 'Post Story as Guest'}`;
+        submitButton.setAttribute('aria-busy', 'false');
+        submitButton.innerHTML = `<i data-feather="upload-cloud" class="w-5 h-5" aria-hidden="true"></i> ${this.isLoggedIn ? 'Post Story' : 'Post Story as Guest'}`;
         feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
       }
     });
@@ -428,6 +461,24 @@ export default class AddStoryPage {
           this.marker = L.marker([lat, lng]).addTo(leafletMap);
         }
       });
+
+      // Add keyboard handler for accessibility
+      const mapElement = document.getElementById('map');
+      if (mapElement) {
+        mapElement.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            // Show a message that keyboard interaction with map is limited
+            const alertContainer = document.getElementById('alert-container');
+            const alertElement = document.getElementById('alert');
+            if (alertContainer && alertElement) {
+              alertContainer.classList.remove('hidden');
+              alertElement.textContent =
+                'Use mouse or touch to interact with the map to select a location.';
+              alertElement.className = 'p-4 rounded bg-blue-100 text-blue-700';
+            }
+          }
+        });
+      }
     }
   }
 
@@ -453,6 +504,7 @@ export default class AddStoryPage {
       const captureButton = document.getElementById('capture-photo-button');
       if (captureButton) {
         captureButton.disabled = true;
+        captureButton.setAttribute('aria-disabled', 'true');
       }
     }
   }

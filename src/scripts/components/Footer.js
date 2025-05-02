@@ -5,10 +5,10 @@ class FooterBar extends HTMLElement {
 
   render() {
     this.innerHTML = `
-      <footer class="bg-secondary shadow-md py-10 mt-10">
-        <div class="container mx-auto px-8 flex justify-between items-center">
+      <footer class="bg-secondary shadow-md py-10 mt-10" role="contentinfo">
+        <div class="container mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div class="flex flex-col items-center text-center justify-center">
-            <a class="text-2xl flex flex-col font-bold items-center text-primary " href="#/">Story App</a>
+            <a class="text-2xl flex flex-col font-bold items-center text-primary" href="#/" aria-label="Story App Home">Story App</a>
           </div>
           <div class="text-sm text-white justify-between flex items-center">
             &copy; ${new Date().getFullYear()} Story App. All rights reserved.

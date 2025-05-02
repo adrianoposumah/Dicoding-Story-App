@@ -14,7 +14,6 @@ export default class HomePresenter {
           this.stories = response.listStory;
           this.view.stories = this.stories;
 
-          // Cache story data for smooth transitions
           try {
             sessionStorage.setItem('homePageStories', JSON.stringify(this.stories));
           } catch (e) {

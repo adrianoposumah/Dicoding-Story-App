@@ -16,6 +16,14 @@
   .container {
     @apply px-8 mx-auto;
   }
+
+  .skip-to-content {
+    @apply absolute z-50 bg-primary text-white px-4 py-2 rounded-b-md -translate-y-full focus:translate-y-0 left-4 transition-transform;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
 }
 
 @layer components {
@@ -34,6 +42,34 @@
 
   .page-transition {
     animation: fadeIn 0.3s ease-in-out;
+  }
+
+  /* New class for smoother main container transitions */
+  .main-content {
+    position: relative;
+    z-index: 1;
+    will-change: opacity, transform;
+    transform-origin: center center;
+  }
+
+  /* Transition helpers */
+  #transition-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  #old-content,
+  #new-content {
+    width: 100%;
+    backface-visibility: hidden; /* Prevent flickering */
+    transform-style: preserve-3d; /* Better 3D transforms */
+  }
+
+  /* Ensure preserved loaders display properly */
+  .preserved-loader {
+    position: relative;
+    z-index: 10;
   }
 
   @keyframes fadeIn {
