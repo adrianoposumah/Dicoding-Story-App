@@ -1,4 +1,3 @@
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 export default class LocationPicker {
@@ -10,6 +9,7 @@ export default class LocationPicker {
       lon: null,
     };
     this.onLocationChanged = null;
+    this.leaflet = null;
   }
 
   render() {
@@ -45,12 +45,10 @@ export default class LocationPicker {
       });
     }
 
-    // Add keyboard handler for accessibility
     const mapElement = document.getElementById('map');
     if (mapElement) {
       mapElement.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          // Show a message that keyboard interaction with map is limited
           const alertContainer = document.getElementById('alert-container');
           const alertElement = document.getElementById('alert');
           if (alertContainer && alertElement) {
@@ -67,15 +65,20 @@ export default class LocationPicker {
   async initializeMap() {
     if (!document.getElementById('map')) return;
 
-    // Fix icon paths for Leaflet
+    if (!this.leaflet) {
+      this.leaflet = await import(/* webpackChunkName: "leaflet" */ 'leaflet');
+    }
+
     this.fixLeafletIconPaths();
 
-    this.map = L.map('map').setView([-6.2, 106.816666], 13);
+    this.map = this.leaflet.map('map').setView([-6.2, 106.816666], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(this.map);
+    this.leaflet
+      .tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      })
+      .addTo(this.map);
 
     this.map.on('click', (e) => {
       const { lat, lng } = e.latlng;
@@ -96,7 +99,7 @@ export default class LocationPicker {
       if (this.marker) {
         this.marker.setLatLng([lat, lng]);
       } else {
-        this.marker = L.marker([lat, lng]).addTo(this.map);
+        this.marker = this.leaflet.marker([lat, lng]).addTo(this.map);
       }
 
       if (this.onLocationChanged) {
@@ -107,9 +110,13 @@ export default class LocationPicker {
     return this.map;
   }
 
-  fixLeafletIconPaths() {
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
+  async fixLeafletIconPaths() {
+    if (!this.leaflet) {
+      this.leaflet = await import(/* webpackChunkName: "leaflet" */ 'leaflet');
+    }
+
+    delete this.leaflet.Icon.Default.prototype._getIconUrl;
+    this.leaflet.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
       iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',

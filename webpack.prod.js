@@ -2,6 +2,7 @@ const common = require('./webpack.common.js');
 const { merge } = require('webpack-merge');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
 
 module.exports = merge(common, {
   mode: 'production',
@@ -9,6 +10,7 @@ module.exports = merge(common, {
     rules: [
       {
         test: /\.css$/,
+        exclude: /node_modules\/leaflet/,
         use: [
           MiniCssExtractPlugin.loader,
           'css-loader',
@@ -21,6 +23,10 @@ module.exports = merge(common, {
             },
           },
         ],
+      },
+      {
+        test: /node_modules\/leaflet\/dist\/leaflet\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
       {
         test: /\.js$/,
@@ -36,5 +42,14 @@ module.exports = merge(common, {
       },
     ],
   },
-  plugins: [new CleanWebpackPlugin(), new MiniCssExtractPlugin()],
+  plugins: [
+    new CleanWebpackPlugin(),
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css',
+    }),
+    // Define browser environment features to avoid errors
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production'),
+    }),
+  ],
 });

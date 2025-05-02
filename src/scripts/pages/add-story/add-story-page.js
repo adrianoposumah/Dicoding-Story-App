@@ -11,12 +11,10 @@ export default class AddStoryPage {
     this.isLoggedIn = this.presenter.isUserLoggedIn();
     this.user = this.presenter.getUserData();
 
-    // Component instances
     this.descriptionComponent = new StoryDescription();
     this.photoUploadComponent = new PhotoUpload();
     this.locationPickerComponent = new LocationPicker();
 
-    // Track form data
     this.photoFile = null;
     this.selectedLocation = {
       lat: null,

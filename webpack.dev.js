@@ -8,6 +8,7 @@ module.exports = merge(common, {
     rules: [
       {
         test: /\.css$/,
+        exclude: /node_modules\/leaflet/,
         use: [
           'style-loader',
           'css-loader',
@@ -22,7 +23,7 @@ module.exports = merge(common, {
         ],
       },
       {
-        test: /leaflet.css$/,
+        test: /node_modules\/leaflet\/dist\/leaflet\.css$/,
         use: ['style-loader', 'css-loader'],
       },
     ],
@@ -36,5 +37,6 @@ module.exports = merge(common, {
         warnings: true,
       },
     },
+    historyApiFallback: true, // Added for SPA routing support
   },
 });

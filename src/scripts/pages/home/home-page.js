@@ -26,7 +26,7 @@ export default class HomePage {
           <section class="container mx-auto px-8 py-10 min-h-[80vh] flex flex-col justify-center">
             <div class="text-center max-w-4xl mx-auto">
               <h1 class="text-4xl font-bold mb-6 text-primary">Selamat Datang!</h1>
-              <p class="text-lg text-secondary mb-8">Share your stories with the world and connect with other storytellers.</p>
+              <p class="text-lg text-secondary mb-8">Bagikan momen dan ceritamu di komunitas Dicoding!</p>
               
               <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-sm px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">
@@ -35,23 +35,6 @@ export default class HomePage {
                 <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300">
                   Sign Up
                 </a>
-              </div>
-            </div>
-            
-            <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-4 text-secondary">Share Your Journey</h2>
-                <p class="text-secondary">Create and share your unique stories with our community.</p>
-              </div>
-              
-              <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-4 text-secondary">Connect with Others</h2>
-                <p class="text-secondary">Read and engage with stories from people around the world.</p>
-              </div>
-              
-              <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-4 text-secondary">Safe & Secure</h2>
-                <p class="text-secondary">Your privacy and data security are our top priorities.</p>
               </div>
             </div>
           </section>

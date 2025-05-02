@@ -1,7 +1,6 @@
 import '../styles/styles.css';
 import '../scripts/components/index.js';
 
-import App from './pages/app';
 import { isViewTransitionSupported } from './utils/view-transition';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -11,6 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
+  const { default: App } = await import('./pages/app'); // Lazy load the App class
   const app = new App({
     content: document.querySelector('#main-content'),
     drawerButton: document.querySelector('#drawer-button'),
