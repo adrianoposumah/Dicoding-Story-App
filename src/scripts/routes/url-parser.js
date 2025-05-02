@@ -1,9 +1,12 @@
 function extractPathnameSegments(path) {
-  const splitUrl = path.split('/');
+  const trimmedPath = path.startsWith('/') ? path : `/${path}`;
+  const splitUrl = trimmedPath.split('/').filter(Boolean);
 
   return {
-    resource: splitUrl[1] || null,
-    id: splitUrl[2] || null,
+    resource: splitUrl[0] || null,
+    id: splitUrl[1] || null,
+    verb: splitUrl[1] || null,
+    subResource: splitUrl[2] || null,
   };
 }
 
@@ -15,30 +18,45 @@ function constructRouteFromSegments(pathSegments) {
   }
 
   if (pathSegments.id) {
-    pathname = pathname.concat('/:id');
+    pathname = pathname.concat(`/${pathSegments.id}`);
+  }
+
+  if (pathSegments.subResource) {
+    pathname = pathname.concat(`/${pathSegments.subResource}`);
   }
 
   return pathname || '/';
 }
 
 export function getActivePathname() {
-  return location.hash.replace('#', '') || '/';
+  return location.hash.slice(1) || '/';
 }
 
 export function getActiveRoute() {
   const pathname = getActivePathname();
-  const urlSegments = extractPathnameSegments(pathname);
-  return constructRouteFromSegments(urlSegments);
+
+  // Check for dynamic routes (with parameters)
+  if (pathname.startsWith('/stories/')) {
+    return '/stories/:id';
+  }
+
+  return pathname;
 }
 
 export function parseActivePathname() {
   const pathname = getActivePathname();
-  return extractPathnameSegments(pathname);
+  const splitUrl = pathname.split('/').filter(Boolean);
+
+  return {
+    resource: splitUrl[0] || null,
+    id: splitUrl[1] || null,
+    verb: splitUrl[1] || null,
+    subResource: splitUrl[2] || null,
+  };
 }
 
 export function getRoute(pathname) {
-  const urlSegments = extractPathnameSegments(pathname);
-  return constructRouteFromSegments(urlSegments);
+  return pathname;
 }
 
 export function parsePathname(pathname) {
