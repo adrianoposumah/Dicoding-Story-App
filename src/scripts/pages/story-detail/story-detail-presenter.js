@@ -2,6 +2,7 @@ import { getStoryById } from '../../data/api';
 import { showFormattedDate } from '../../utils/index';
 import { getStoryTransitionName } from '../../utils/view-transition';
 import L from 'leaflet';
+import Map from '../../utils/map';
 
 export default class StoryDetailPresenter {
   constructor(view) {
@@ -62,24 +63,27 @@ export default class StoryDetailPresenter {
     return getStoryTransitionName(storyId);
   }
 
-  initializeMap(lat, lon, name, mapElement) {
+  async initializeMap(lat, lon, name, mapElement) {
     if (!mapElement) return null;
 
     this.fixLeafletIconPaths();
 
-    const map = L.map(mapElement).setView([lat, lon], 13);
+    try {
+      const mapInstance = await Map.build('#story-map', {
+        center: [lat, lon],
+        zoom: 13,
+      });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map);
+      const marker = L.marker([lat, lon]).addTo(mapInstance._map);
+      marker
+        .bindPopup(`<b>${name}'s Story</b><br>Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}`)
+        .openPopup();
 
-    const marker = L.marker([lat, lon]).addTo(map);
-    marker
-      .bindPopup(`<b>${name}'s Story</b><br>Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}`)
-      .openPopup();
-
-    return map;
+      return mapInstance._map;
+    } catch (error) {
+      console.error('Error initializing story map:', error);
+      return null;
+    }
   }
 
   fixLeafletIconPaths() {

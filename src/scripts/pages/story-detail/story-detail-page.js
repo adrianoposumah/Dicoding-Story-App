@@ -188,14 +188,21 @@ export default class StoryDetailPage {
     feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }
 
-  initializeMap(lat, lon, name) {
+  async initializeMap(lat, lon, name) {
     const mapElement = document.getElementById('story-map');
-    this.map = this.presenter.initializeMap(lat, lon, name, mapElement);
 
-    if (this.map) {
-      setTimeout(() => {
-        this.map.invalidateSize();
-      }, 200);
+    if (!mapElement) return;
+
+    try {
+      this.map = await this.presenter.initializeMap(lat, lon, name, mapElement);
+
+      if (this.map) {
+        setTimeout(() => {
+          this.map.invalidateSize();
+        }, 200);
+      }
+    } catch (error) {
+      console.error('Error initializing map in story detail page:', error);
     }
   }
 

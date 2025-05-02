@@ -76,6 +76,13 @@ export function getStoryTransitionName(storyId) {
 
 export function shouldUseCustomAnimation(currentRoute, targetRoute) {
   if (
+    (targetRoute === '/' && currentRoute.startsWith('/stories/')) ||
+    (currentRoute === '/' && targetRoute.startsWith('/stories/'))
+  ) {
+    return false;
+  }
+
+  if (
     targetRoute.startsWith('/stories/') &&
     (currentRoute === '/' || currentRoute.startsWith('/stories/'))
   ) {
