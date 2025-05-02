@@ -1,6 +1,6 @@
-import { getStories } from '../../data/api';
 import { getStoryTransitionName, isViewTransitionSupported } from '../../utils/view-transition';
 import feather from 'feather-icons';
+import HomePresenter from './home-presenter';
 
 export default class HomePage {
   constructor() {
@@ -8,31 +8,15 @@ export default class HomePage {
     this.user = this.isLoggedIn ? JSON.parse(localStorage.getItem('auth')) : null;
     this.stories = [];
     this.supportsViewTransition = isViewTransitionSupported();
-  }
-
-  truncateText(text, maxLength = 120) {
-    if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength).trim() + '...';
+    this.presenter = new HomePresenter(this);
   }
 
   async fetchStories() {
-    try {
-      if (this.isLoggedIn) {
-        const response = await getStories();
-        if (!response.error) {
-          this.stories = response.listStory;
+    return this.presenter.fetchStories();
+  }
 
-          // Cache story data for smooth transitions
-          try {
-            sessionStorage.setItem('homePageStories', JSON.stringify(this.stories));
-          } catch (e) {
-            console.error('Error saving to session storage:', e);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching stories:', error);
-    }
+  truncateText(text, maxLength = 120) {
+    return this.presenter.truncateText(text, maxLength);
   }
 
   async render() {

@@ -1,6 +1,11 @@
 import { login } from '../../data/api';
+import SignInPresenter from './signin-presenter';
 
 export default class SignInPage {
+  constructor() {
+    this.presenter = new SignInPresenter(this);
+  }
+
   async render() {
     return `
       <div class="container mx-auto px-4 py-10 h-[80vh]">
@@ -69,32 +74,21 @@ export default class SignInPage {
       submitButton.disabled = true;
       submitButton.textContent = 'Signing in...';
 
-      try {
-        const response = await login({ email, password });
+      const result = await this.presenter.performLogin(email, password);
 
-        if (response.error) {
-          showAlert(response.message, true);
-        } else {
-          const authData = {
-            userId: response.loginResult.userId,
-            name: response.loginResult.name,
-            token: response.loginResult.token,
-          };
+      if (!result.success) {
+        showAlert(result.message, true);
+      } else {
+        showAlert(result.message, false);
 
-          localStorage.setItem('auth', JSON.stringify(authData));
-          showAlert('Login successful! Redirecting...', false);
-
-          setTimeout(() => {
-            window.location.hash = '#/';
-            window.location.reload();
-          }, 1500);
-        }
-      } catch (error) {
-        showAlert('Network error, please try again.', true);
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Sign In';
+        setTimeout(() => {
+          this.presenter.redirectToHome();
+        }, 1500);
       }
+
+      // Re-enable the button either way
+      submitButton.disabled = false;
+      submitButton.textContent = 'Sign In';
     });
   }
 }

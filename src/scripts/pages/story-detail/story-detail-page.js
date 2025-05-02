@@ -1,9 +1,8 @@
-import { getStoryById } from '../../data/api';
+import { isViewTransitionSupported } from '../../utils/view-transition';
 import { showFormattedDate } from '../../utils/index';
-import { getStoryTransitionName, isViewTransitionSupported } from '../../utils/view-transition';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import feather from 'feather-icons';
+import StoryDetailPresenter from './story-detail-presenter';
 
 export default class StoryDetailPage {
   constructor() {
@@ -15,35 +14,15 @@ export default class StoryDetailPage {
     this.supportsViewTransition = isViewTransitionSupported();
     this.storyId = null;
     this.map = null;
+    this.presenter = new StoryDetailPresenter(this);
   }
 
   async fetchStory(id) {
-    try {
-      this.isLoading = true;
-      const response = await getStoryById(id);
-
-      if (!response.error) {
-        this.story = response.story;
-      } else {
-        this.error = response.message || 'Failed to fetch story';
-      }
-    } catch (error) {
-      console.error('Error fetching story:', error);
-      this.error = 'An unexpected error occurred';
-    } finally {
-      this.isLoading = false;
-    }
+    await this.presenter.fetchStory(id);
   }
 
   formatDate(dateString) {
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    return this.presenter.formatDate(dateString);
   }
 
   async render() {
@@ -52,9 +31,8 @@ export default class StoryDetailPage {
       return '';
     }
 
-    // Extract story ID from URL at render time
     this.storyId = window.location.hash.split('/')[2];
-    const storyTransitionName = getStoryTransitionName(this.storyId);
+    const storyTransitionName = this.presenter.getStoryTransitionName(this.storyId);
     const cachedImageUrl = this.getImageUrlFromCache();
 
     return `
@@ -66,7 +44,6 @@ export default class StoryDetailPage {
             </a>
             
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-              <!-- Image is rendered immediately for transition purposes without loading overlay -->
               <div class="relative h-[40vh] overflow-hidden bg-gray-100">
                 <img 
                   src="${cachedImageUrl || ''}" 
@@ -79,7 +56,6 @@ export default class StoryDetailPage {
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               </div>
               
-              <!-- Content area loads separately -->
               <div id="story-content" class="p-6">
                 <div class="flex flex-col items-center py-8">
                   <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -87,7 +63,6 @@ export default class StoryDetailPage {
                 </div>
               </div>
               
-              <!-- Map container (will show only if location data exists) -->
               <div id="map-container" class="hidden">
                 <div id="story-map" class="h-[300px] w-full"></div>
               </div>
@@ -98,37 +73,18 @@ export default class StoryDetailPage {
     `;
   }
 
-  // Helper method to try to get the image URL from cache
   getImageUrlFromCache() {
-    try {
-      // Try to find the story in localStorage or sessionStorage if you've saved it there
-      // Or if you have a list of stories already loaded in the home page
-      const homePageStories = JSON.parse(sessionStorage.getItem('homePageStories') || '[]');
-      const cachedStory = homePageStories.find((story) => story.id === this.storyId);
-
-      if (cachedStory && cachedStory.photoUrl) {
-        return cachedStory.photoUrl;
-      }
-
-      // If there's no cached data, return an empty placeholder image
-      return '';
-    } catch (error) {
-      console.error('Error getting cached image:', error);
-      return '';
-    }
+    return this.presenter.getImageUrlFromCache(this.storyId);
   }
 
   async afterRender() {
     if (!this.isLoggedIn) return;
 
-    // Get the story ID from the URL
     const storyId = this.storyId || window.location.hash.split('/')[2];
 
     if (storyId) {
-      // Fetch the story data
       await this.fetchStory(storyId);
 
-      // Update only the content area, not the entire container
       const storyContent = document.getElementById('story-content');
       const storyImage = document.getElementById('story-image');
       const mapContainer = document.getElementById('map-container');
@@ -155,7 +111,6 @@ export default class StoryDetailPage {
         return;
       }
 
-      // Update the image source if it wasn't available before
       if (
         storyImage &&
         (!storyImage.src ||
@@ -167,7 +122,6 @@ export default class StoryDetailPage {
         storyImage.alt = `${this.story.name}'s story`;
       }
 
-      // Update content area
       if (storyContent) {
         const hasLocation = this.story.lat !== null && this.story.lon !== null;
 
@@ -200,33 +154,26 @@ export default class StoryDetailPage {
         `;
       }
 
-      // Add fade-in effect for the image
       if (storyImage) {
         storyImage.onload = () => {
           storyImage.classList.add('loaded');
         };
 
-        // If image is already loaded from cache
         if (storyImage.complete) {
           storyImage.classList.add('loaded');
         }
       }
 
-      // Initialize map if location data exists
       if (this.story.lat !== null && this.story.lon !== null && mapContainer) {
         mapContainer.classList.remove('hidden');
 
-        // A small delay to ensure the map container is visible
         setTimeout(() => {
-          // Initialize Leaflet map
           this.initializeMap(this.story.lat, this.story.lon, this.story.name);
         }, 100);
       }
 
-      // Initialize Feather icons after content is updated
       feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
 
-      // Save the story data to session storage for faster loading next time
       try {
         const homePageStories = JSON.parse(sessionStorage.getItem('homePageStories') || '[]');
         if (!homePageStories.find((s) => s.id === this.story.id)) {
@@ -238,47 +185,21 @@ export default class StoryDetailPage {
       }
     }
 
-    // Initialize Feather icons for the back button
     feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }
 
   initializeMap(lat, lon, name) {
     const mapElement = document.getElementById('story-map');
+    this.map = this.presenter.initializeMap(lat, lon, name, mapElement);
 
-    if (!mapElement) return;
-
-    // Fix Leaflet icon paths
-    this.fixLeafletIconPaths();
-
-    // Create map
-    this.map = L.map('story-map').setView([lat, lon], 13);
-
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(this.map);
-
-    // Add marker with popup
-    const marker = L.marker([lat, lon]).addTo(this.map);
-    marker
-      .bindPopup(`<b>${name}'s Story</b><br>Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}`)
-      .openPopup();
-
-    // Invalidate size to handle any rendering issues
-    setTimeout(() => {
-      this.map.invalidateSize();
-    }, 200);
+    if (this.map) {
+      setTimeout(() => {
+        this.map.invalidateSize();
+      }, 200);
+    }
   }
 
   fixLeafletIconPaths() {
-    // Fix the Leaflet icon paths that might be broken due to webpack bundling
-    delete L.Icon.Default.prototype._getIconUrl;
-
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-      iconUrl: require('leaflet/dist/images/marker-icon.png'),
-      shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-    });
+    this.presenter.fixLeafletIconPaths();
   }
 }

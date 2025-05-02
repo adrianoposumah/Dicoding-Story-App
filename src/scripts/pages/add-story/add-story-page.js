@@ -1,13 +1,14 @@
 import { addStory, addStoryAsGuest } from '../../data/api';
-import Map from '../../utils/map';
 import feather from 'feather-icons';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import AddStoryPresenter from './add-story-presenter';
 
 export default class AddStoryPage {
   constructor() {
-    this.isLoggedIn = localStorage.getItem('auth') !== null;
-    this.user = this.isLoggedIn ? JSON.parse(localStorage.getItem('auth')) : null;
+    this.presenter = new AddStoryPresenter(this);
+    this.isLoggedIn = this.presenter.isUserLoggedIn();
+    this.user = this.presenter.getUserData();
     this.photoFile = null;
     this.photoPreview = null;
     this.mediaStream = null;
@@ -171,10 +172,8 @@ export default class AddStoryPage {
   }
 
   async afterRender() {
-    // Initialize feather icons
     feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
 
-    // Get DOM elements
     const form = document.getElementById('add-story-form');
     const startCameraButton = document.getElementById('start-camera-button');
     const capturePhotoButton = document.getElementById('capture-photo-button');
@@ -192,26 +191,20 @@ export default class AddStoryPage {
     const coordinatesDisplay = document.getElementById('coordinates-display');
     const clearLocationButton = document.getElementById('clear-location-button');
 
-    // Initialize map
     await this.initializeMap();
 
-    // Method to show alert messages
     const showAlert = (message, isError = false) => {
       alertContainer.classList.remove('hidden');
       alertElement.textContent = message;
       alertElement.className = `p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
 
-      // Scroll to alert
       alertContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
-    // Start camera
     startCameraButton.addEventListener('click', async () => {
       try {
-        // Stop any existing stream first
         await this.stopCamera();
 
-        // Get camera stream
         this.mediaStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'environment',
@@ -220,18 +213,14 @@ export default class AddStoryPage {
           },
         });
 
-        // Show video element and hide placeholder
         cameraPreview.classList.remove('hidden');
         cameraPlaceholder.classList.add('hidden');
 
-        // Set stream to video element
         cameraPreview.srcObject = this.mediaStream;
         this.videoElement = cameraPreview;
 
-        // Enable capture button
         capturePhotoButton.disabled = false;
 
-        // Change button text
         startCameraButton.innerHTML =
           '<i data-feather="video-off" class="w-4 h-4"></i> Stop Camera';
         feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
@@ -244,38 +233,30 @@ export default class AddStoryPage {
       }
     });
 
-    // Capture photo from camera
     capturePhotoButton.addEventListener('click', () => {
       if (!this.videoElement || !this.mediaStream) return;
 
       try {
-        // Create canvas to capture frame
         const canvas = document.createElement('canvas');
         canvas.width = this.videoElement.videoWidth;
         canvas.height = this.videoElement.videoHeight;
         const ctx = canvas.getContext('2d');
 
-        // Draw video frame to canvas
         ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
 
-        // Convert to blob
         canvas.toBlob(
           (blob) => {
             this.photoFile = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
 
-            // Display the captured photo
             const imageUrl = URL.createObjectURL(blob);
             photoPreview.src = imageUrl;
             this.photoPreview = imageUrl;
 
-            // Show preview and hide upload placeholder
             photoPreviewContainer.classList.remove('hidden');
             uploadPlaceholder.classList.add('hidden');
 
-            // Stop the camera after capturing
             this.stopCamera();
 
-            // Reset camera button
             startCameraButton.innerHTML =
               '<i data-feather="video" class="w-4 h-4"></i> Start Camera';
             feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
@@ -289,7 +270,6 @@ export default class AddStoryPage {
       }
     });
 
-    // Handle file upload
     uploadPlaceholder.addEventListener('click', () => {
       photoUpload.click();
     });
@@ -298,13 +278,11 @@ export default class AddStoryPage {
       const file = event.target.files[0];
       if (!file) return;
 
-      // Check file type
       if (!file.type.match('image.*')) {
         showAlert('Please select an image file.', true);
         return;
       }
 
-      // Check file size (max 1MB)
       if (file.size > 1024 * 1024) {
         showAlert('Image size exceeds 1MB. Please select a smaller image.', true);
         return;
@@ -312,56 +290,44 @@ export default class AddStoryPage {
 
       this.photoFile = file;
 
-      // Display the selected image
       const imageUrl = URL.createObjectURL(file);
       photoPreview.src = imageUrl;
       this.photoPreview = imageUrl;
 
-      // Show preview and hide upload placeholder
       photoPreviewContainer.classList.remove('hidden');
       uploadPlaceholder.classList.add('hidden');
     });
 
-    // Remove photo button
     removePhotoButton.addEventListener('click', () => {
-      // Clear photo data
       this.photoFile = null;
       this.photoPreview = null;
       photoPreview.src = '';
 
-      // Hide preview and show upload placeholder
       photoPreviewContainer.classList.add('hidden');
       uploadPlaceholder.classList.remove('hidden');
 
-      // Reset file input
       photoUpload.value = '';
     });
 
-    // Clear location button
     clearLocationButton.addEventListener('click', () => {
-      // Clear location data
       this.selectedLocation = {
         lat: null,
         lon: null,
       };
 
-      // Remove marker
       if (this.marker) {
         this.marker.remove();
         this.marker = null;
       }
 
-      // Update UI
       locationInfo.classList.add('hidden');
     });
 
-    // Form submission
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       const description = document.getElementById('description').value.trim();
 
-      // Validation
       if (!description) {
         showAlert('Please enter a story description.', true);
         return;
@@ -372,12 +338,10 @@ export default class AddStoryPage {
         return;
       }
 
-      // Disable submit button and show loading state
       submitButton.disabled = true;
       submitButton.innerHTML = '<span class="animate-spin mr-2">⟳</span> Posting...';
 
       try {
-        // Prepare data
         const storyData = {
           description,
           photo: this.photoFile,
@@ -385,7 +349,6 @@ export default class AddStoryPage {
           lon: this.selectedLocation.lon,
         };
 
-        // Submit based on authentication status
         const response = this.isLoggedIn
           ? await addStory(storyData)
           : await addStoryAsGuest(storyData);
@@ -395,7 +358,6 @@ export default class AddStoryPage {
         } else {
           showAlert('Story posted successfully!', false);
 
-          // Clear form
           form.reset();
           this.photoFile = null;
           this.photoPreview = null;
@@ -403,7 +365,6 @@ export default class AddStoryPage {
           photoPreviewContainer.classList.add('hidden');
           uploadPlaceholder.classList.remove('hidden');
 
-          // Clear location
           this.selectedLocation = {
             lat: null,
             lon: null,
@@ -416,7 +377,6 @@ export default class AddStoryPage {
 
           locationInfo.classList.add('hidden');
 
-          // Redirect after a delay
           setTimeout(() => {
             window.location.hash = '#/';
           }, 2000);
@@ -425,18 +385,15 @@ export default class AddStoryPage {
         console.error('Error submitting story:', error);
         showAlert('An unexpected error occurred. Please try again.', true);
       } finally {
-        // Re-enable submit button
         submitButton.disabled = false;
         submitButton.innerHTML = `<i data-feather="upload-cloud" class="w-5 h-5"></i> ${this.isLoggedIn ? 'Post Story' : 'Post Story as Guest'}`;
         feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
       }
     });
 
-    // Cleanup on page navigation
     window.addEventListener('hashchange', () => {
       this.stopCamera();
 
-      // Clean up preview URLs
       if (this.photoPreview) {
         URL.revokeObjectURL(this.photoPreview);
       }
@@ -444,31 +401,19 @@ export default class AddStoryPage {
   }
 
   async initializeMap() {
-    try {
-      // Fix Leaflet icon paths
-      this.fixLeafletIconPaths();
+    this.map = await this.presenter.initializeMap();
 
-      // Initialize map centered on user location or default
-      this.map = await Map.build('#map', {
-        locate: true,
-        zoom: 13,
-      });
-
-      // Get the Leaflet map instance from our Map class
+    if (this.map) {
       const leafletMap = this.map._map;
 
-      // Add click event to map
       leafletMap.on('click', (e) => {
-        // Get coordinates
         const { lat, lng } = e.latlng;
 
-        // Update selected location
         this.selectedLocation = {
           lat: lat,
           lon: lng,
         };
 
-        // Update UI
         const coordinatesDisplay = document.getElementById('coordinates-display');
         const locationInfo = document.getElementById('location-info');
 
@@ -477,48 +422,34 @@ export default class AddStoryPage {
           locationInfo.classList.remove('hidden');
         }
 
-        // Add or update marker
         if (this.marker) {
           this.marker.setLatLng([lat, lng]);
         } else {
           this.marker = L.marker([lat, lng]).addTo(leafletMap);
         }
       });
-    } catch (error) {
-      console.error('Error initializing map:', error);
     }
   }
 
   fixLeafletIconPaths() {
-    // Fix the Leaflet icon paths that might be broken due to webpack bundling
-    delete L.Icon.Default.prototype._getIconUrl;
-
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-      iconUrl: require('leaflet/dist/images/marker-icon.png'),
-      shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-    });
+    this.presenter.fixLeafletIconPaths();
   }
 
   async stopCamera() {
-    // Stop the camera stream if it exists
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach((track) => track.stop());
+      this.presenter.stopCamera(this.mediaStream);
       this.mediaStream = null;
     }
 
-    // Reset video element
     if (this.videoElement) {
       this.videoElement.srcObject = null;
       this.videoElement.classList.add('hidden');
 
-      // Show placeholder
       const cameraPlaceholder = document.getElementById('camera-placeholder');
       if (cameraPlaceholder) {
         cameraPlaceholder.classList.remove('hidden');
       }
 
-      // Disable capture button
       const captureButton = document.getElementById('capture-photo-button');
       if (captureButton) {
         captureButton.disabled = true;

@@ -1,6 +1,11 @@
 import { register } from '../../data/api';
+import SignUpPresenter from './signup-presenter';
 
 export default class SignUpPage {
+  constructor() {
+    this.presenter = new SignUpPresenter(this);
+  }
+
   async render() {
     return `
       <div class="container mx-auto px-4 py-10 h-[80vh]">
@@ -77,23 +82,19 @@ export default class SignUpPage {
       submitButton.disabled = true;
       submitButton.textContent = 'Signing up...';
 
-      try {
-        const response = await register({ name, email, password });
+      const result = await this.presenter.performRegistration(name, email, password);
 
-        if (response.error) {
-          showAlert(response.message, true);
-        } else {
-          showAlert('Registration successful! Redirecting to sign in...', false);
-          setTimeout(() => {
-            window.location.hash = '#/auth/signin';
-          }, 2000);
-        }
-      } catch (error) {
-        showAlert('Network error, please try again.', true);
-      } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Sign Up';
+      if (!result.success) {
+        showAlert(result.message, true);
+      } else {
+        showAlert('Registration successful! Redirecting to sign in...', false);
+        setTimeout(() => {
+          this.presenter.redirectToSignIn();
+        }, 2000);
       }
+
+      submitButton.disabled = false;
+      submitButton.textContent = 'Sign Up';
     });
   }
 }
