@@ -1,5 +1,6 @@
 import { getStories } from '../../data/api';
 import { getStoryTransitionName, isViewTransitionSupported } from '../../utils/view-transition';
+import feather from 'feather-icons';
 
 export default class HomePage {
   constructor() {
@@ -75,8 +76,8 @@ export default class HomePage {
         <section class="container mx-auto px-8 py-10">
           <div class="flex flex-col md:flex-row justify-between items-center mb-8">
             <h1 class="text-2xl font-bold text-primary">Welcome, ${this.user.name}!</h1>
-            <a href="#/add" class="inline-block font-semibold bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300 mt-4 md:mt-0">
-              Add New Story
+            <a href="#/add" class="inline-flex items-center gap-2 font-semibold bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300 mt-4 md:mt-0">
+              <i data-feather="plus-circle"></i> Add New Story
             </a>
           </div>
           
@@ -93,14 +94,14 @@ export default class HomePage {
                       alt="${story.name}'s story" 
                       class="w-full h-full object-cover"
                       data-story-id="${story.id}"
-                      ${this.supportsViewTransition ? `style="view-transition-name: ${getStoryTransitionName(story.id)}"` : ''}
+                      ${this.supportsViewTransition ? `style="view-transition-name: ${getStoryTransitionName(story.id)};"` : ''}
                     >
                   </div>
                   <div class="p-4">
                     <h2 class="text-xl font-bold text-secondary mb-2">${story.name}</h2>
                     <p class="text-secondary h-[4.5em] overflow-hidden">${this.truncateText(story.description)}</p>
-                    <a href="#/stories/${story.id}" class="inline-block mt-4 text-sm text-primary font-semibold hover:text-secondary">
-                      Read more →
+                    <a href="#/stories/${story.id}" class="inline-flex items-center gap-1 mt-4 text-sm text-primary font-semibold hover:text-secondary">
+                      Read more <i data-feather="arrow-right" class="w-4 h-4"></i>
                     </a>
                   </div>
                 </div>
@@ -132,14 +133,14 @@ export default class HomePage {
                   alt="${story.name}'s story" 
                   class="w-full h-full object-cover"
                   data-story-id="${story.id}"
-                  ${this.supportsViewTransition ? `style="view-transition-name: ${getStoryTransitionName(story.id)}"` : ''}
+                  ${this.supportsViewTransition ? `style="view-transition-name: ${getStoryTransitionName(story.id)};"` : ''}
                 >
               </div>
               <div class="p-4">
                 <h2 class="text-xl font-bold text-secondary mb-2">${story.name}</h2>
                 <p class="text-secondary h-[4.5em] overflow-hidden">${this.truncateText(story.description)}</p>
-                <a href="#/stories/${story.id}" class="inline-block mt-4 text-sm text-primary font-semibold hover:text-secondary">
-                  Read more →
+                <a href="#/stories/${story.id}" class="inline-flex items-center gap-1 mt-4 text-sm text-primary font-semibold hover:text-secondary">
+                  Read more <i data-feather="arrow-right" class="w-4 h-4"></i>
                 </a>
               </div>
             </div>
@@ -148,6 +149,9 @@ export default class HomePage {
                 .join('')
             : '<p class="col-span-3 text-center py-8">No stories found</p>';
       }
+
+      // Initialize Feather icons
+      feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
     }
   }
 }

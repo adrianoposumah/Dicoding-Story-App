@@ -1,6 +1,9 @@
 import { getStoryById } from '../../data/api';
 import { showFormattedDate } from '../../utils/index';
 import { getStoryTransitionName, isViewTransitionSupported } from '../../utils/view-transition';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import feather from 'feather-icons';
 
 export default class StoryDetailPage {
   constructor() {
@@ -11,6 +14,7 @@ export default class StoryDetailPage {
     this.error = null;
     this.supportsViewTransition = isViewTransitionSupported();
     this.storyId = null;
+    this.map = null;
   }
 
   async fetchStory(id) {
@@ -57,8 +61,8 @@ export default class StoryDetailPage {
       <section class="container mx-auto px-8 py-10">
         <div id="story-detail-container" class="max-w-4xl mx-auto">
           <div class="page-transition">
-            <a href="#/" class="inline-block mb-6 text-primary hover:underline">
-              &larr; Back to stories
+            <a href="#/" class="inline-flex items-center gap-1 mb-6 text-primary hover:underline">
+              <i data-feather="arrow-left" class="w-4 h-4"></i> Back to stories
             </a>
             
             <div class="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -70,7 +74,7 @@ export default class StoryDetailPage {
                   class="w-full h-full object-cover image-fade-in ${cachedImageUrl ? 'loaded' : ''}"
                   id="story-image"
                   data-story-id="${this.storyId}"
-                  ${this.supportsViewTransition ? `style="view-transition-name: ${storyTransitionName}"` : ''}
+                  ${this.supportsViewTransition ? `style="view-transition-name: ${storyTransitionName};"` : ''}
                 >
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
               </div>
@@ -81,6 +85,11 @@ export default class StoryDetailPage {
                   <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                   <p class="mt-4 text-lg text-secondary">Loading story details...</p>
                 </div>
+              </div>
+              
+              <!-- Map container (will show only if location data exists) -->
+              <div id="map-container" class="hidden">
+                <div id="story-map" class="h-[300px] w-full"></div>
               </div>
             </div>
           </div>
@@ -122,6 +131,7 @@ export default class StoryDetailPage {
       // Update only the content area, not the entire container
       const storyContent = document.getElementById('story-content');
       const storyImage = document.getElementById('story-image');
+      const mapContainer = document.getElementById('map-container');
 
       if (this.error) {
         if (storyContent) {
@@ -168,26 +178,25 @@ export default class StoryDetailPage {
           <p class="text-sm text-gray-500 mb-6">
             ${showFormattedDate(this.story.createdAt)}
           </p>
+          
+          <div class="prose max-w-none mb-6">
+            <p>${this.story.description}</p>
+          </div>
+          
           ${
             hasLocation
               ? `
-          <div class="mb-4 pb-4 border-b">
-            <p class="text-sm text-secondary">
-              <span class="font-semibold">Location:</span> 
-              <a href="https://maps.google.com/?q=${this.story.lat},${this.story.lon}" 
-                 target="_blank" 
-                 class="text-primary hover:underline">
-                View on map (${this.story.lat.toFixed(4)}, ${this.story.lon.toFixed(4)})
-              </a>
+          <div class="mb-4">
+            <h2 class="inline-flex items-center gap-2 text-xl font-semibold text-secondary mb-2">
+              <i data-feather="map-pin" class="w-5 h-5"></i> Location
+            </h2>
+            <p class="text-sm text-secondary mb-2">
+              Coordinates: ${this.story.lat.toFixed(4)}, ${this.story.lon.toFixed(4)}
             </p>
           </div>
           `
               : ''
           }
-          
-          <div class="prose max-w-none">
-            <p>${this.story.description}</p>
-          </div>
         `;
       }
 
@@ -203,6 +212,20 @@ export default class StoryDetailPage {
         }
       }
 
+      // Initialize map if location data exists
+      if (this.story.lat !== null && this.story.lon !== null && mapContainer) {
+        mapContainer.classList.remove('hidden');
+
+        // A small delay to ensure the map container is visible
+        setTimeout(() => {
+          // Initialize Leaflet map
+          this.initializeMap(this.story.lat, this.story.lon, this.story.name);
+        }, 100);
+      }
+
+      // Initialize Feather icons after content is updated
+      feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
+
       // Save the story data to session storage for faster loading next time
       try {
         const homePageStories = JSON.parse(sessionStorage.getItem('homePageStories') || '[]');
@@ -214,5 +237,48 @@ export default class StoryDetailPage {
         console.error('Error saving to session storage:', e);
       }
     }
+
+    // Initialize Feather icons for the back button
+    feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
+  }
+
+  initializeMap(lat, lon, name) {
+    const mapElement = document.getElementById('story-map');
+
+    if (!mapElement) return;
+
+    // Fix Leaflet icon paths
+    this.fixLeafletIconPaths();
+
+    // Create map
+    this.map = L.map('story-map').setView([lat, lon], 13);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(this.map);
+
+    // Add marker with popup
+    const marker = L.marker([lat, lon]).addTo(this.map);
+    marker
+      .bindPopup(`<b>${name}'s Story</b><br>Location: ${lat.toFixed(4)}, ${lon.toFixed(4)}`)
+      .openPopup();
+
+    // Invalidate size to handle any rendering issues
+    setTimeout(() => {
+      this.map.invalidateSize();
+    }, 200);
+  }
+
+  fixLeafletIconPaths() {
+    // Fix the Leaflet icon paths that might be broken due to webpack bundling
+    delete L.Icon.Default.prototype._getIconUrl;
+
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+      iconUrl: require('leaflet/dist/images/marker-icon.png'),
+      shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+    });
   }
 }

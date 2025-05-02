@@ -21,6 +21,10 @@ module.exports = merge(common, {
           },
         ],
       },
+      {
+        test: /leaflet.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
     ],
   },
   devServer: {

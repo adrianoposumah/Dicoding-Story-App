@@ -35,7 +35,6 @@ export function getActivePathname() {
 export function getActiveRoute() {
   const pathname = getActivePathname();
 
-  // Check for dynamic routes (with parameters)
   if (pathname.startsWith('/stories/')) {
     return '/stories/:id';
   }

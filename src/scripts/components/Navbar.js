@@ -1,3 +1,5 @@
+import feather from 'feather-icons';
+
 class NavBar extends HTMLElement {
   connectedCallback() {
     this.render();
@@ -19,16 +21,13 @@ class NavBar extends HTMLElement {
               ${
                 isLoggedIn
                   ? `
-                <li><a href="#/stories" class="text-secondary hover:text-primary transition-colors duration-300">Stories</a></li>
-                <li><a href="#/about" class="text-secondary hover:text-primary transition-colors duration-300">About</a></li>
                 <li class="lg:ml-4">
-                  <button id="logout-button" class="bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300">
-                    Logout (${user ? user.name : ''})
+                  <button id="logout-button" class="inline-flex items-center gap-2 bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300">
+                    <i data-feather="log-out" class="w-4 h-4"></i> Logout (${user ? user.name : ''})
                   </button>
                 </li>
               `
                   : `
-                <li><a href="#/about" class="text-secondary hover:text-primary transition-colors duration-300">About</a></li>
                 <div class="flex items-center gap-4">
                 <li>
                     <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-sm px-3 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">Sign In</a>
@@ -46,10 +45,12 @@ class NavBar extends HTMLElement {
         </div>
       </header>
     `;
+
+    // Initialize Feather icons after rendering
+    feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }
 
   setupEventListeners() {
-    // Handle logout button click
     const logoutButton = this.querySelector('#logout-button');
     if (logoutButton) {
       logoutButton.addEventListener('click', () => {
@@ -58,29 +59,13 @@ class NavBar extends HTMLElement {
         window.location.reload();
       });
     }
-
-    // Handle drawer button click for mobile navigation
-    const drawerButton = this.querySelector('#drawer-button');
-    const navigationDrawer = this.querySelector('#navigation-drawer');
-
-    if (drawerButton && navigationDrawer) {
-      drawerButton.addEventListener('click', (event) => {
-        navigationDrawer.classList.toggle('translate-x-[-100%]');
-        event.stopPropagation();
-      });
-
-      // Close drawer when clicking nav links
-      const navLinks = navigationDrawer.querySelectorAll('a');
-      navLinks.forEach((link) => {
-        link.addEventListener('click', () => {
-          if (window.innerWidth < 1024) {
-            // 1024px is the lg breakpoint in Tailwind
-            navigationDrawer.classList.add('translate-x-[-100%]');
-          }
-        });
-      });
-    }
   }
 }
 
-customElements.define('nav-bar', NavBar);
+customElement('nav-bar', NavBar);
+
+function customElement(name, constructor) {
+  if (!customElements.get(name)) {
+    customElements.define(name, constructor);
+  }
+}

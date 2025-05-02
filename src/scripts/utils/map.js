@@ -67,4 +67,9 @@ export default class Map {
       ...options,
     });
   }
+
+  // Expose the map instance for direct use
+  get _map() {
+    return this.#map;
+  }
 }
