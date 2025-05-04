@@ -16,9 +16,9 @@ export default class LocationPicker {
     return `
       <fieldset class="space-y-4">
         <legend class="block text-sm font-medium text-secondary mb-2">
-          Location (Optional)
+          Location 
         </legend>
-        <div id="map" class="h-[300px] w-full rounded-lg shadow-md" aria-label="Interactive map for selecting location" tabindex="0"></div>
+        <div id="map" class="h-[300px] w-full rounded-lg shadow-md" aria-label="Interactive map for selecting location - this is optional" tabindex="0"></div>
         <div id="location-info" class="text-sm text-gray-600 hidden" aria-live="polite">
           <p>Selected coordinates: <span id="coordinates-display">None</span></p>
           <button 
@@ -30,6 +30,7 @@ export default class LocationPicker {
             Clear location
           </button>
         </div>
+        <p class="text-xs text-gray-500">Klik di map untuk membagikan lokasi yang anda pilih, atau biarkan jika tidak ingin.</p>
       </fieldset>
     `;
   }

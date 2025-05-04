@@ -34,10 +34,8 @@ export default class AddStoryModel {
 
   isDataValid() {
     return (
-      this.storyData.description &&
-      this.storyData.photo &&
-      this.storyData.lat !== null &&
-      this.storyData.lon !== null
+      this.storyData.description && this.storyData.photo
+      // Location is now optional, so we're removing the lat/lon validation
     );
   }
 

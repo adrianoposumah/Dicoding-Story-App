@@ -74,11 +74,12 @@ export default class AddStoryPresenter {
   }
 
   getValidationErrorMessage() {
-    const { description, photo, lat, lon } = this.model.storyData;
+    const { description, photo } = this.model.storyData;
 
     if (!description) return 'Please enter a story description.';
     if (!photo) return 'Please upload or capture a photo.';
-    if (lat === null || lon === null) return 'Please select a location.';
+
+    // Removed location validation since it's optional
 
     return '';
   }

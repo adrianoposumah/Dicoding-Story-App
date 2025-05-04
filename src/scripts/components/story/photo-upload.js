@@ -71,13 +71,13 @@ export default class PhotoUpload {
                 alt="Your selected photo preview" 
                 class="w-full h-full object-cover"
               >
-              <button 
+     <button 
                 type="button" 
                 id="remove-photo-button"
-                class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                class="absolute top-2 right-2 h-11 w-11 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors flex items-center justify-center"
                 aria-label="Remove selected photo"
               >
-                <i data-feather="x" class="w-4 h-4" aria-hidden="true"></i>
+                <i data-feather="x" class="w-5 h-5" aria-hidden="true"></i>
               </button>
             </div>
             <div 

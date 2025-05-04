@@ -33,14 +33,20 @@ export default class AddStoryPage {
               </div>
               
               <form id="add-story-form" class="space-y-6" novalidate>
-                <!-- Story Description Component -->
-                ${this.descriptionComponent.render()}
-                
-                <!-- Photo Upload Component -->
-                ${this.photoUploadComponent.render()}
-                
-                <!-- Location Picker Component -->
-                ${this.locationPickerComponent.render()}
+                <!-- Required fields section -->
+                <div class="border-b pb-4 mb-4">
+                  <h2 class="text-lg font-medium text-secondary mb-4">Required Information</h2>
+                  <!-- Story Description Component -->
+                  ${this.descriptionComponent.render()}
+                  
+                  <!-- Photo Upload Component -->
+                  ${this.photoUploadComponent.render()}
+                </div>
+
+                <div>
+                  <!-- Location Picker Component -->
+                  ${this.locationPickerComponent.render()}
+                </div>
                 
                 <!-- Submit Button -->
                 <div>
