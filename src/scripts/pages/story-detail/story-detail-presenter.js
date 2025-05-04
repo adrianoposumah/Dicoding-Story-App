@@ -1,12 +1,13 @@
-import { getStoryById } from '../../data/api';
 import { showFormattedDate } from '../../utils/index';
 import { getStoryTransitionName } from '../../utils/view-transition';
 import L from 'leaflet';
 import Map from '../../utils/map';
+import StoryDetailModel from './story-detail-model';
 
 export default class StoryDetailPresenter {
   constructor(view) {
     this.view = view;
+    this.model = new StoryDetailModel();
     this.story = null;
     this.isLoading = true;
     this.error = null;
@@ -15,22 +16,25 @@ export default class StoryDetailPresenter {
   async fetchStory(id) {
     try {
       this.isLoading = true;
-      const response = await getStoryById(id);
+      this.view.updateLoadingState(true);
+
+      const response = await this.model.getStoryById(id);
 
       if (!response.error) {
         this.story = response.story;
-        this.view.story = this.story;
+        this.view.updateStoryData(this.story);
+        this.model.saveStoryToSessionStorage(this.story);
       } else {
         this.error = response.message || 'Failed to fetch story';
-        this.view.error = this.error;
+        this.view.showError(this.error);
       }
     } catch (error) {
       console.error('Error fetching story:', error);
       this.error = 'An unexpected error occurred';
-      this.view.error = this.error;
+      this.view.showError(this.error);
     } finally {
       this.isLoading = false;
-      this.view.isLoading = false;
+      this.view.updateLoadingState(false);
     }
   }
 
@@ -45,18 +49,7 @@ export default class StoryDetailPresenter {
   }
 
   getImageUrlFromCache(storyId) {
-    try {
-      const homePageStories = JSON.parse(sessionStorage.getItem('homePageStories') || '[]');
-      const cachedStory = homePageStories.find((story) => story.id === storyId);
-
-      if (cachedStory && cachedStory.photoUrl) {
-        return cachedStory.photoUrl;
-      }
-      return '';
-    } catch (error) {
-      console.error('Error getting cached image:', error);
-      return '';
-    }
+    return this.model.getImageUrlFromCache(storyId);
   }
 
   getStoryTransitionName(storyId) {
@@ -97,18 +90,11 @@ export default class StoryDetailPresenter {
   }
 
   checkUserAuthentication() {
-    return this.view.isLoggedIn;
+    const { isLoggedIn } = this.model.getUserAuthState();
+    return isLoggedIn;
   }
 
-  saveStoryToSessionStorage(story) {
-    try {
-      const homePageStories = JSON.parse(sessionStorage.getItem('homePageStories') || '[]');
-      if (!homePageStories.find((s) => s.id === story.id)) {
-        homePageStories.push(story);
-        sessionStorage.setItem('homePageStories', JSON.stringify(homePageStories));
-      }
-    } catch (e) {
-      console.error('Error saving to session storage:', e);
-    }
+  getUserData() {
+    return this.model.getUserAuthState();
   }
 }

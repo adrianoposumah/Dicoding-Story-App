@@ -1,10 +1,11 @@
-import { addStory, addStoryAsGuest } from '../../data/api';
 import Map from '../../utils/map';
 import L from 'leaflet';
+import AddStoryModel from './add-story-model';
 
 export default class AddStoryPresenter {
   constructor(view) {
     this.view = view;
+    this.model = new AddStoryModel();
   }
 
   async initializeMap() {
@@ -33,23 +34,53 @@ export default class AddStoryPresenter {
     });
   }
 
-  async submitStory(storyData, isLoggedIn) {
-    try {
-      const response = isLoggedIn ? await addStory(storyData) : await addStoryAsGuest(storyData);
+  setDescription(description) {
+    this.model.setDescription(description);
+  }
 
-      return {
-        success: !response.error,
-        message:
-          response.message ||
-          (response.error ? 'Failed to submit story' : 'Story posted successfully!'),
-      };
-    } catch (error) {
-      console.error('Error submitting story:', error);
+  setPhoto(photoFile) {
+    this.model.setPhoto(photoFile);
+  }
+
+  setLocation(lat, lon) {
+    this.model.setLocation(lat, lon);
+  }
+
+  getLocation() {
+    return this.model.getLocation();
+  }
+
+  isUserLoggedIn() {
+    return this.model.isUserLoggedIn();
+  }
+
+  getUserData() {
+    return this.model.getUserData();
+  }
+
+  async submitStory() {
+    if (!this.validateStoryData()) {
       return {
         success: false,
-        message: 'An unexpected error occurred. Please try again.',
+        message: this.getValidationErrorMessage(),
       };
     }
+
+    return await this.model.submitStory();
+  }
+
+  validateStoryData() {
+    return this.model.isDataValid();
+  }
+
+  getValidationErrorMessage() {
+    const { description, photo, lat, lon } = this.model.storyData;
+
+    if (!description) return 'Please enter a story description.';
+    if (!photo) return 'Please upload or capture a photo.';
+    if (lat === null || lon === null) return 'Please select a location.';
+
+    return '';
   }
 
   redirectToHome() {
@@ -85,11 +116,7 @@ export default class AddStoryPresenter {
     }
   }
 
-  isUserLoggedIn() {
-    return localStorage.getItem('auth') !== null;
-  }
-
-  getUserData() {
-    return this.isUserLoggedIn() ? JSON.parse(localStorage.getItem('auth')) : null;
+  resetData() {
+    this.model.resetData();
   }
 }

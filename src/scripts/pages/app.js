@@ -19,58 +19,26 @@ export default class App {
   }
 
   initialize() {
-    if (this.drawerButton && this.navigationDrawer) {
-      this.drawerButton.addEventListener('click', (event) => {
-        this.navigationDrawer.classList.toggle('translate-x-[-100%]');
-        const isExpanded = !this.navigationDrawer.classList.contains('translate-x-[-100%]');
-        this.drawerButton.setAttribute('aria-expanded', isExpanded);
-        event.stopPropagation();
-      });
-
-      document.addEventListener('click', (event) => {
-        if (
-          this.navigationDrawer &&
-          !this.navigationDrawer.contains(event.target) &&
-          !this.drawerButton.contains(event.target) &&
-          !this.navigationDrawer.classList.contains('translate-x-[-100%]')
-        ) {
-          this.navigationDrawer.classList.add('translate-x-[-100%]');
-          this.drawerButton.setAttribute('aria-expanded', false);
-        }
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (
-          event.key === 'Escape' &&
-          this.navigationDrawer &&
-          !this.navigationDrawer.classList.contains('translate-x-[-100%]')
-        ) {
-          this.navigationDrawer.classList.add('translate-x-[-100%]');
-          this.drawerButton.setAttribute('aria-expanded', false);
-          this.drawerButton.focus();
-        }
-      });
-    }
+    // We're now handling all drawer toggling in the Navbar component
+    // This prevents duplicate event listeners and conflicting behavior
+    // No need to add drawer-related event listeners here
   }
 
   async renderPage() {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
 
-    this.page = getPage();
-    const targetPath = getActivePathname();
-    const useCustomAnimation = shouldUseCustomAnimation(this.currentPath, targetPath);
-    const animationType = getRecommendedAnimationType(this.currentPath, targetPath);
-
     try {
-      // Store current scroll position
+      this.page = getPage();
+      const targetPath = getActivePathname();
+      const useCustomAnimation = shouldUseCustomAnimation(this.currentPath, targetPath);
+      const animationType = getRecommendedAnimationType(this.currentPath, targetPath);
+
       const scrollPosition = window.scrollY;
 
-      // Measure content container dimensions to prevent layout shifts
       const contentRect = this.content.getBoundingClientRect();
       const contentHeight = contentRect.height;
 
-      // Create a temporary placeholder to maintain layout during transition
       if (useCustomAnimation) {
         this.content.style.minHeight = `${contentHeight}px`;
       }
@@ -84,20 +52,17 @@ export default class App {
         animationType,
       );
 
-      // Reset min-height after transition
       this.content.style.minHeight = '';
 
       this.content.focus();
+
       await this.page.afterRender();
 
-      // Clean up any preserved loaders
       const preservedLoaders = document.querySelectorAll('.preserved-loader');
       preservedLoaders.forEach((loader) => loader.remove());
 
-      // Update current path
       this.currentPath = targetPath;
 
-      // Scroll handling
       if (!targetPath.includes('/stories/')) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {

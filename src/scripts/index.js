@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await app.renderPage();
 
-  window.addEventListener('hashchange', async () => {
+  window.addEventListener('hashchange', async (event) => {
+    console.log('Hash changed:', window.location.hash);
     await app.renderPage();
   });
 });

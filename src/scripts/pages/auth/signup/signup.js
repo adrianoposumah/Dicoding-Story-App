@@ -1,4 +1,4 @@
-import { register } from '../../data/api';
+import { register } from '../../../data/api';
 import SignUpPresenter from './signup-presenter';
 
 export default class SignUpPage {
@@ -71,12 +71,10 @@ export default class SignUpPage {
       return;
     }
 
-    const showAlert = (message, isError = false) => {
-      alertContainer.classList.remove('hidden');
-      alertElement.textContent = message;
-      alertElement.className = `p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
-    };
+    this.bindEvents(form, submitButton, alertContainer, alertElement);
+  }
 
+  bindEvents(form, submitButton, alertContainer, alertElement) {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
@@ -84,24 +82,37 @@ export default class SignUpPage {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      submitButton.disabled = true;
-      submitButton.textContent = 'Signing up...';
-      submitButton.setAttribute('aria-busy', 'true');
+      this.setSubmitButtonState(submitButton, true, 'Signing up...');
 
       const result = await this.presenter.performRegistration(name, email, password);
 
       if (!result.success) {
-        showAlert(result.message, true);
+        this.showAlert(alertContainer, alertElement, result.message, true);
       } else {
-        showAlert('Registration successful! Redirecting to sign in...', false);
+        this.showAlert(
+          alertContainer,
+          alertElement,
+          'Registration successful! Redirecting to sign in...',
+          false,
+        );
         setTimeout(() => {
           this.presenter.redirectToSignIn();
         }, 2000);
       }
 
-      submitButton.disabled = false;
-      submitButton.textContent = 'Sign Up';
-      submitButton.setAttribute('aria-busy', 'false');
+      this.setSubmitButtonState(submitButton, false, 'Sign Up');
     });
+  }
+
+  setSubmitButtonState(button, isLoading, text) {
+    button.disabled = isLoading;
+    button.textContent = text;
+    button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+  }
+
+  showAlert(container, element, message, isError = false) {
+    container.classList.remove('hidden');
+    element.textContent = message;
+    element.className = `p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
   }
 }

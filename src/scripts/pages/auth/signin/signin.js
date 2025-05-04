@@ -1,4 +1,4 @@
-import { login } from '../../data/api';
+import { login } from '../../../data/api';
 import SignInPresenter from './signin-presenter';
 
 export default class SignInPage {
@@ -63,39 +63,44 @@ export default class SignInPage {
       return;
     }
 
-    const showAlert = (message, isError = false) => {
-      alertContainer.classList.remove('hidden');
-      alertElement.textContent = message;
-      alertElement.className = `p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
-      alertElement.setAttribute('role', 'alert');
-    };
+    this.bindEvents(form, submitButton, alertContainer, alertElement);
+  }
 
+  bindEvents(form, submitButton, alertContainer, alertElement) {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      submitButton.disabled = true;
-      submitButton.textContent = 'Signing in...';
-      submitButton.setAttribute('aria-busy', 'true');
+      this.setSubmitButtonState(submitButton, true, 'Signing in...');
 
       const result = await this.presenter.performLogin(email, password);
 
       if (!result.success) {
-        showAlert(result.message, true);
+        this.showAlert(alertContainer, alertElement, result.message, true);
       } else {
-        showAlert(result.message, false);
+        this.showAlert(alertContainer, alertElement, result.message, false);
 
         setTimeout(() => {
           this.presenter.redirectToHome();
         }, 1500);
       }
 
-      // Re-enable the button either way
-      submitButton.disabled = false;
-      submitButton.textContent = 'Sign In';
-      submitButton.setAttribute('aria-busy', 'false');
+      this.setSubmitButtonState(submitButton, false, 'Sign In');
     });
+  }
+
+  setSubmitButtonState(button, isLoading, text) {
+    button.disabled = isLoading;
+    button.textContent = text;
+    button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+  }
+
+  showAlert(container, element, message, isError = false) {
+    container.classList.remove('hidden');
+    element.textContent = message;
+    element.className = `p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+    element.setAttribute('role', 'alert');
   }
 }

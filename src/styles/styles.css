@@ -17,6 +17,14 @@
     @apply px-8 mx-auto;
   }
 
+  button {
+    @apply h-11;
+  }
+
+  a {
+    @apply py-3;
+  }
+
   .skip-to-content {
     @apply absolute z-50 bg-primary text-white px-4 py-2 rounded-b-md -translate-y-full focus:translate-y-0 left-4 transition-transform;
   }
@@ -44,7 +52,6 @@
     animation: fadeIn 0.3s ease-in-out;
   }
 
-  /* New class for smoother main container transitions */
   .main-content {
     position: relative;
     z-index: 1;
@@ -52,7 +59,6 @@
     transform-origin: center center;
   }
 
-  /* Transition helpers */
   #transition-container {
     position: relative;
     width: 100%;
@@ -62,11 +68,10 @@
   #old-content,
   #new-content {
     width: 100%;
-    backface-visibility: hidden; /* Prevent flickering */
-    transform-style: preserve-3d; /* Better 3D transforms */
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
   }
 
-  /* Ensure preserved loaders display properly */
   .preserved-loader {
     position: relative;
     z-index: 10;
@@ -82,7 +87,6 @@
   }
 }
 
-/* View Transitions API styles */
 @layer utilities {
   @starting-style {
     ::view-transition-old(root),
@@ -98,7 +102,6 @@
       opacity: 0;
     }
 
-    /* Story image specific transitions */
     ::view-transition-old(story-image),
     ::view-transition-new(story-image) {
       animation-duration: 0.5s;
@@ -108,7 +111,6 @@
     }
   }
 
-  /* Define the transition effect */
   ::view-transition-old(root) {
     animation: 0.3s cubic-bezier(0.4, 0, 0.2, 1) both fade-out;
   }
@@ -117,7 +119,6 @@
     animation: 0.3s cubic-bezier(0.4, 0, 0.2, 1) both fade-in;
   }
 
-  /* Story image specific transitions */
   ::view-transition-old(story-image) {
     animation: 0.5s cubic-bezier(0.4, 0, 0.2, 1) both zoom-out;
   }

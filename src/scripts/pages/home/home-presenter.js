@@ -1,27 +1,21 @@
-import { getStories } from '../../data/api';
-
 export default class HomePresenter {
-  constructor(view) {
+  constructor(view, model) {
     this.view = view;
-    this.stories = [];
+    this.model = model;
+    this.initApplication();
+  }
+
+  initApplication() {
+    const isLoggedIn = this.model.initializeAuthState();
+    this.view.updateAuthState(isLoggedIn, this.model.getUser());
   }
 
   async fetchStories() {
     try {
-      if (this.view.isLoggedIn) {
-        const response = await getStories();
-        if (!response.error) {
-          this.stories = response.listStory;
-          this.view.stories = this.stories;
-
-          try {
-            sessionStorage.setItem('homePageStories', JSON.stringify(this.stories));
-          } catch (e) {
-            console.error('Error saving to session storage:', e);
-          }
-
-          return true;
-        }
+      if (this.model.isLoggedIn) {
+        const stories = await this.model.fetchStories();
+        this.view.updateStories(stories);
+        return true;
       }
       return false;
     } catch (error) {
@@ -36,6 +30,6 @@ export default class HomePresenter {
   }
 
   getUserData() {
-    return this.view.isLoggedIn ? this.view.user : null;
+    return this.model.getUser();
   }
 }

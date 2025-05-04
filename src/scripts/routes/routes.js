@@ -1,6 +1,6 @@
 import HomePage from '../pages/home/home-page';
-import SignInPage from '../pages/auth/signin';
-import SignUpPage from '../pages/auth/signup';
+import SignInPage from '../pages/auth/signin/signin';
+import SignUpPage from '../pages/auth/signup/signup';
 import StoryDetailPage from '../pages/story-detail/story-detail-page';
 import AddStoryPage from '../pages/add-story/add-story-page';
 import { parseActivePathname } from './url-parser';
@@ -15,15 +15,20 @@ const routes = {
 export default function getPage() {
   const { resource, id, verb } = parseActivePathname();
 
-  // Handle dynamic story detail routes
   if (resource === 'stories' && id) {
     return new StoryDetailPage();
   }
 
-  // Handle auth routes
   if (resource === 'auth' && verb) {
-    return routes[`/${resource}/${verb}`] || routes['/'];
+    const authPath = `/${resource}/${verb}`;
+    return routes[authPath] || routes['/'];
   }
 
-  return routes[`/${resource || ''}`] || routes['/'];
+  const path = `/${resource || ''}`;
+
+  if (path === '/add') {
+    return new AddStoryPage();
+  }
+
+  return routes[path] || routes['/'];
 }

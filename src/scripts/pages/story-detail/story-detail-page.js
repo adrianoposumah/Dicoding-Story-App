@@ -6,19 +6,34 @@ import StoryDetailPresenter from './story-detail-presenter';
 
 export default class StoryDetailPage {
   constructor() {
-    this.isLoggedIn = localStorage.getItem('auth') !== null;
-    this.user = this.isLoggedIn ? JSON.parse(localStorage.getItem('auth')) : null;
+    this.presenter = new StoryDetailPresenter(this);
+    const { isLoggedIn, user } = this.presenter.getUserData();
+    this.isLoggedIn = isLoggedIn;
+    this.user = user;
     this.story = null;
     this.isLoading = true;
     this.error = null;
     this.supportsViewTransition = isViewTransitionSupported();
     this.storyId = null;
     this.map = null;
-    this.presenter = new StoryDetailPresenter(this);
   }
 
   async fetchStory(id) {
     await this.presenter.fetchStory(id);
+  }
+
+  updateStoryData(story) {
+    this.story = story;
+    this.renderStoryContent();
+  }
+
+  updateLoadingState(isLoading) {
+    this.isLoading = isLoading;
+  }
+
+  showError(errorMessage) {
+    this.error = errorMessage;
+    this.renderStoryContent();
   }
 
   formatDate(dateString) {
@@ -33,7 +48,7 @@ export default class StoryDetailPage {
 
     this.storyId = window.location.hash.split('/')[2];
     const storyTransitionName = this.presenter.getStoryTransitionName(this.storyId);
-    const cachedImageUrl = this.getImageUrlFromCache();
+    const cachedImageUrl = this.presenter.getImageUrlFromCache(this.storyId);
 
     return `
       <section class="container mx-auto px-8 py-10">
@@ -73,8 +88,91 @@ export default class StoryDetailPage {
     `;
   }
 
-  getImageUrlFromCache() {
-    return this.presenter.getImageUrlFromCache(this.storyId);
+  renderStoryContent() {
+    const storyContent = document.getElementById('story-content');
+    const storyImage = document.getElementById('story-image');
+    const mapContainer = document.getElementById('map-container');
+
+    if (!storyContent) return;
+
+    if (this.error) {
+      storyContent.innerHTML = `
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+          <p>${this.error}</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (!this.story) {
+      storyContent.innerHTML = `
+        <div class="text-center" role="status">
+          <p class="text-lg text-secondary mb-4">Story not found</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (
+      storyImage &&
+      (!storyImage.src ||
+        storyImage.src === 'null' ||
+        storyImage.src === 'undefined' ||
+        storyImage.src === window.location.href)
+    ) {
+      storyImage.src = this.story.photoUrl;
+      storyImage.alt = `Story image shared by ${this.story.name}`;
+    }
+
+    const hasLocation = this.story.lat !== null && this.story.lon !== null;
+
+    storyContent.innerHTML = `
+      <h1 class="text-3xl font-bold text-secondary mb-4">
+        ${this.story.name}'s Story
+      </h1>
+      <p class="text-sm text-gray-500 mb-6">
+        <time datetime="${new Date(this.story.createdAt).toISOString()}">${showFormattedDate(this.story.createdAt)}</time>
+      </p>
+      
+      <div class="prose max-w-none mb-6">
+        <p>${this.story.description}</p>
+      </div>
+      
+      ${
+        hasLocation
+          ? `
+      <div class="mb-4">
+        <h2 class="inline-flex items-center gap-2 text-xl font-semibold text-secondary mb-2">
+          <i data-feather="map-pin" class="w-5 h-5" aria-hidden="true"></i> Location
+        </h2>
+        <p class="text-sm text-secondary mb-2">
+          Coordinates: <span aria-label="Latitude ${this.story.lat.toFixed(4)}, Longitude ${this.story.lon.toFixed(4)}">${this.story.lat.toFixed(4)}, ${this.story.lon.toFixed(4)}</span>
+        </p>
+      </div>
+      `
+          : ''
+      }
+    `;
+
+    if (storyImage) {
+      storyImage.onload = () => {
+        storyImage.classList.add('loaded');
+      };
+
+      if (storyImage.complete) {
+        storyImage.classList.add('loaded');
+      }
+    }
+
+    if (hasLocation && mapContainer) {
+      mapContainer.classList.remove('hidden');
+
+      setTimeout(() => {
+        this.initializeMap(this.story.lat, this.story.lon, this.story.name);
+      }, 100);
+    }
+
+    feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }
 
   async afterRender() {
@@ -84,105 +182,6 @@ export default class StoryDetailPage {
 
     if (storyId) {
       await this.fetchStory(storyId);
-
-      const storyContent = document.getElementById('story-content');
-      const storyImage = document.getElementById('story-image');
-      const mapContainer = document.getElementById('map-container');
-
-      if (this.error) {
-        if (storyContent) {
-          storyContent.innerHTML = `
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
-              <p>${this.error}</p>
-            </div>
-          `;
-        }
-        return;
-      }
-
-      if (!this.story) {
-        if (storyContent) {
-          storyContent.innerHTML = `
-            <div class="text-center" role="status">
-              <p class="text-lg text-secondary mb-4">Story not found</p>
-            </div>
-          `;
-        }
-        return;
-      }
-
-      if (
-        storyImage &&
-        (!storyImage.src ||
-          storyImage.src === 'null' ||
-          storyImage.src === 'undefined' ||
-          storyImage.src === window.location.href)
-      ) {
-        storyImage.src = this.story.photoUrl;
-        storyImage.alt = `Story image shared by ${this.story.name}`;
-      }
-
-      if (storyContent) {
-        const hasLocation = this.story.lat !== null && this.story.lon !== null;
-
-        storyContent.innerHTML = `
-          <h1 class="text-3xl font-bold text-secondary mb-4">
-            ${this.story.name}'s Story
-          </h1>
-          <p class="text-sm text-gray-500 mb-6">
-            <time datetime="${new Date(this.story.createdAt).toISOString()}">${showFormattedDate(this.story.createdAt)}</time>
-          </p>
-          
-          <div class="prose max-w-none mb-6">
-            <p>${this.story.description}</p>
-          </div>
-          
-          ${
-            hasLocation
-              ? `
-          <div class="mb-4">
-            <h2 class="inline-flex items-center gap-2 text-xl font-semibold text-secondary mb-2">
-              <i data-feather="map-pin" class="w-5 h-5" aria-hidden="true"></i> Location
-            </h2>
-            <p class="text-sm text-secondary mb-2">
-              Coordinates: <span aria-label="Latitude ${this.story.lat.toFixed(4)}, Longitude ${this.story.lon.toFixed(4)}">${this.story.lat.toFixed(4)}, ${this.story.lon.toFixed(4)}</span>
-            </p>
-          </div>
-          `
-              : ''
-          }
-        `;
-      }
-
-      if (storyImage) {
-        storyImage.onload = () => {
-          storyImage.classList.add('loaded');
-        };
-
-        if (storyImage.complete) {
-          storyImage.classList.add('loaded');
-        }
-      }
-
-      if (this.story.lat !== null && this.story.lon !== null && mapContainer) {
-        mapContainer.classList.remove('hidden');
-
-        setTimeout(() => {
-          this.initializeMap(this.story.lat, this.story.lon, this.story.name);
-        }, 100);
-      }
-
-      feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
-
-      try {
-        const homePageStories = JSON.parse(sessionStorage.getItem('homePageStories') || '[]');
-        if (!homePageStories.find((s) => s.id === this.story.id)) {
-          homePageStories.push(this.story);
-          sessionStorage.setItem('homePageStories', JSON.stringify(homePageStories));
-        }
-      } catch (e) {
-        console.error('Error saving to session storage:', e);
-      }
     }
 
     feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
@@ -204,9 +203,5 @@ export default class StoryDetailPage {
     } catch (error) {
       console.error('Error initializing map in story detail page:', error);
     }
-  }
-
-  fixLeafletIconPaths() {
-    this.presenter.fixLeafletIconPaths();
   }
 }

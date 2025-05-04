@@ -1,4 +1,3 @@
-import { addStory, addStoryAsGuest } from '../../data/api';
 import feather from 'feather-icons';
 import AddStoryPresenter from './add-story-presenter';
 import StoryDescription from '../../components/story/story-description';
@@ -14,12 +13,6 @@ export default class AddStoryPage {
     this.descriptionComponent = new StoryDescription();
     this.photoUploadComponent = new PhotoUpload();
     this.locationPickerComponent = new LocationPicker();
-
-    this.photoFile = null;
-    this.selectedLocation = {
-      lat: null,
-      lon: null,
-    };
   }
 
   async render() {
@@ -90,12 +83,12 @@ export default class AddStoryPage {
     this.descriptionComponent.afterRender();
 
     this.photoUploadComponent.onPhotoSelected = (photoFile) => {
-      this.photoFile = photoFile;
+      this.presenter.setPhoto(photoFile);
     };
     this.photoUploadComponent.afterRender(showAlert);
 
     this.locationPickerComponent.onLocationChanged = (location) => {
-      this.selectedLocation = location;
+      this.presenter.setLocation(location.lat, location.lon);
     };
     await this.locationPickerComponent.afterRender();
 
@@ -103,16 +96,7 @@ export default class AddStoryPage {
       event.preventDefault();
 
       const description = this.descriptionComponent.value;
-
-      if (!description) {
-        showAlert('Please enter a story description.', true);
-        return;
-      }
-
-      if (!this.photoFile) {
-        showAlert('Please upload or capture a photo.', true);
-        return;
-      }
+      this.presenter.setDescription(description);
 
       submitButton.disabled = true;
       submitButton.setAttribute('aria-busy', 'true');
@@ -120,30 +104,18 @@ export default class AddStoryPage {
         '<span class="animate-spin mr-2" aria-hidden="true">⟳</span> Posting...';
 
       try {
-        const storyData = {
-          description,
-          photo: this.photoFile,
-          lat: this.selectedLocation.lat,
-          lon: this.selectedLocation.lon,
-        };
+        const result = await this.presenter.submitStory();
 
-        const response = this.isLoggedIn
-          ? await addStory(storyData)
-          : await addStoryAsGuest(storyData);
-
-        if (response.error) {
-          showAlert(response.message || 'Failed to submit story. Please try again.', true);
+        if (!result.success) {
+          showAlert(result.message, true);
         } else {
           showAlert('Story posted successfully!', false);
 
           form.reset();
-          this.descriptionComponent.value = '';
-          this.photoUploadComponent.reset();
-          this.locationPickerComponent.reset();
-          this.photoFile = null;
+          this.resetForm();
 
           setTimeout(() => {
-            window.location.hash = '#/';
+            this.presenter.redirectToHome();
           }, 2000);
         }
       } catch (error) {
@@ -160,6 +132,13 @@ export default class AddStoryPage {
     window.addEventListener('hashchange', () => {
       this.photoUploadComponent.cleanup();
     });
+  }
+
+  resetForm() {
+    this.descriptionComponent.value = '';
+    this.photoUploadComponent.reset();
+    this.locationPickerComponent.reset();
+    this.presenter.resetData();
   }
 
   fixLeafletIconPaths() {

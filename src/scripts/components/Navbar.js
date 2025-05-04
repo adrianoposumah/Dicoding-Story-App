@@ -13,18 +13,21 @@ class NavBar extends HTMLElement {
     this.innerHTML = `
       <header class="sticky top-0 z-40 bg-background shadow-md">
         <div class="container mx-auto px-8 py-4 flex justify-between items-center">
-          <a class="text-2xl font-bold text-primary transition-colors duration-300" href="#/" aria-label="Story App Home">Story App</a>
+          <a class="text-2xl py-2 font-bold text-primary transition-colors duration-300" href="#/" aria-label="Story App Home">Story App</a>
 
           <button id="drawer-button" 
-            class="text-secondary hover:text-primary text-2xl lg:hidden transition-colors duration-300 z-50"
+            class="text-secondary hover:text-primary text-2xl lg:hidden transition-colors duration-300"
             aria-label="Toggle navigation menu"
             aria-expanded="false"
             aria-controls="navigation-drawer">☰</button>
 
           <nav id="navigation-drawer" 
-            class="fixed top-0 left-0 z-50 h-screen w-64 bg-background p-6 shadow-lg transform transition-transform duration-300 translate-x-[-100%] lg:translate-x-0 lg:relative lg:h-auto lg:w-auto lg:p-0 lg:shadow-none"
+            class="fixed top-0 left-0 right-0 z-40 h-screen bg-background p-6 shadow-lg transform transition-transform duration-300 translate-x-[-100%] lg:transform-none lg:translate-x-0 lg:relative lg:h-auto lg:w-auto lg:p-0 lg:shadow-none"
             aria-label="Main navigation"
             role="navigation">
+            <div class="flex justify-end lg:hidden mb-4">
+              <button id="close-drawer" class="text-2xl" aria-label="Close navigation menu">✕</button>
+            </div>
             <ul id="nav-list" class="flex flex-col lg:flex-row gap-6 items-center">
               <li><a href="#/" class="text-secondary hover:text-primary transition-colors duration-300">Home</a></li>
               ${
@@ -37,12 +40,12 @@ class NavBar extends HTMLElement {
                 </li>
               `
                   : `
-                <div class="flex items-center gap-4">
+                <div class="flex flex-col lg:flex-row items-center gap-4">
                 <li>
-                    <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-sm px-3 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">Sign In</a>
+                    <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-base px-3 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">Sign In</a>
                 </li>
                 <li>
-                  <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-sm px-3 py-2 rounded-md hover:bg-secondary transition-colors duration-300">Sign Up</a>
+                  <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-base px-3 py-2 rounded-md hover:bg-secondary transition-colors duration-300">Sign Up</a>
                 </li>
                 </div>
               `
@@ -68,15 +71,54 @@ class NavBar extends HTMLElement {
 
     const drawerButton = this.querySelector('#drawer-button');
     const navigationDrawer = this.querySelector('#navigation-drawer');
+    const closeDrawerButton = this.querySelector('#close-drawer');
 
     if (drawerButton && navigationDrawer) {
+      // Open drawer
       drawerButton.addEventListener('click', (event) => {
-        const isExpanded = navigationDrawer.classList.contains('translate-x-[-100%]')
-          ? false
-          : true;
-        navigationDrawer.classList.toggle('translate-x-[-100%]');
-        drawerButton.setAttribute('aria-expanded', !isExpanded);
+        navigationDrawer.classList.remove('translate-x-[-100%]');
+        drawerButton.setAttribute('aria-expanded', 'true');
         event.stopPropagation();
+      });
+
+      // Close drawer with X button
+      if (closeDrawerButton) {
+        closeDrawerButton.addEventListener('click', () => {
+          navigationDrawer.classList.add('translate-x-[-100%]');
+          drawerButton.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      // Close drawer when clicking on links
+      const navLinks = navigationDrawer.querySelectorAll('a');
+      navLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 1024) {
+            navigationDrawer.classList.add('translate-x-[-100%]');
+            drawerButton.setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+
+      // Close drawer when clicking outside
+      document.addEventListener('click', (event) => {
+        if (
+          !navigationDrawer.contains(event.target) &&
+          !drawerButton.contains(event.target) &&
+          !navigationDrawer.classList.contains('translate-x-[-100%]')
+        ) {
+          navigationDrawer.classList.add('translate-x-[-100%]');
+          drawerButton.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Close drawer on escape key
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !navigationDrawer.classList.contains('translate-x-[-100%]')) {
+          navigationDrawer.classList.add('translate-x-[-100%]');
+          drawerButton.setAttribute('aria-expanded', 'false');
+          drawerButton.focus();
+        }
       });
     }
   }
