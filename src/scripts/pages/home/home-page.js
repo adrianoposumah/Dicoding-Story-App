@@ -73,11 +73,11 @@ export default class HomePage {
               <h1 class="text-4xl font-bold mb-6 text-primary">Selamat Datang!</h1>
               <p class="text-lg text-secondary mb-8">Bagikan momen dan ceritamu di komunitas Dicoding!</p>
               
-              <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-sm px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">
+              <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-sm w-40 py-3 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">
                   Sign In
                 </a>
-                <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300">
+                <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-sm w-40 py-3 rounded-md hover:bg-secondary transition-colors duration-300">
                   Sign Up
                 </a>
               </div>

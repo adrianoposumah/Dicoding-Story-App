@@ -42,10 +42,10 @@ class NavBar extends HTMLElement {
                   : `
                 <div class="flex flex-col lg:flex-row items-center gap-4">
                 <li>
-                    <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-base px-3 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">Sign In</a>
+                    <a href="#/auth/signin" class="border font-semibold border-primary text-primary text-base px-3 py-2.5 rounded-md hover:bg-primary hover:text-white transition-colors duration-300">Sign In</a>
                 </li>
                 <li>
-                  <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-base px-3 py-2 rounded-md hover:bg-secondary transition-colors duration-300">Sign Up</a>
+                  <a href="#/auth/signup" class="inline-block font-semibold bg-primary text-white text-base px-3 py-2.5 rounded-md hover:bg-secondary transition-colors duration-300">Sign Up</a>
                 </li>
                 </div>
               `
