@@ -25,6 +25,11 @@
     @apply py-3;
   }
 
+  .leaflet-control-zoom-in,
+  .leaflet-control-zoom-out {
+    @apply py-0;
+  }
+
   .skip-to-content {
     @apply absolute z-50 bg-primary text-white px-4 py-2 rounded-b-md -translate-y-full focus:translate-y-0 left-4 transition-transform;
   }

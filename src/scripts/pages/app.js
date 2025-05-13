@@ -19,14 +19,14 @@ export default class App {
   }
 
   initialize() {
-    // We're now handling all drawer toggling in the Navbar component
-    // This prevents duplicate event listeners and conflicting behavior
-    // No need to add drawer-related event listeners here
+    this.updateSkipLinkTarget();
   }
 
   async renderPage() {
     if (this.isTransitioning) return;
     this.isTransitioning = true;
+
+    document.body.classList.add('transitioning');
 
     try {
       this.page = getPage();
@@ -54,7 +54,11 @@ export default class App {
 
       this.content.style.minHeight = '';
 
-      this.content.focus();
+      setTimeout(() => {
+        this.content.focus();
+
+        this.updateSkipLinkTarget();
+      }, 100);
 
       await this.page.afterRender();
 
@@ -80,6 +84,35 @@ export default class App {
     } finally {
       this.isTransitioning = false;
       this.content.style.minHeight = '';
+
+      document.body.classList.remove('transitioning');
     }
+  }
+
+  updateSkipLinkTarget() {
+    const skipLink = document.getElementById('skip-link');
+    if (!skipLink) return;
+
+    const currentPath = getActivePathname();
+    let targetId = 'main-content';
+
+    if (currentPath.startsWith('/auth/signin')) {
+      targetId = 'signin-form';
+    } else if (currentPath.startsWith('/auth/signup')) {
+      targetId = 'signup-form';
+    } else if (currentPath.startsWith('/stories/')) {
+      targetId = 'story-detail-container';
+    } else if (currentPath === '/add') {
+      targetId = 'add-story-form';
+    }
+
+    skipLink.setAttribute('href', `#${targetId}`);
+
+    setTimeout(() => {
+      const targetElement = document.getElementById(targetId);
+      if (targetElement && targetId !== 'main-content') {
+        targetElement.setAttribute('tabindex', '-1');
+      }
+    }, 200);
   }
 }
