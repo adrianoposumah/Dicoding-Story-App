@@ -1,11 +1,11 @@
-import CONFIG from '../config';
+import { BASE_URL } from '../config';
 
 const ENDPOINTS = {
-  REGISTER: `${CONFIG.BASE_URL}/register`,
-  LOGIN: `${CONFIG.BASE_URL}/login`,
-  STORIES: `${CONFIG.BASE_URL}/stories`,
-  STORIES_GUEST: `${CONFIG.BASE_URL}/stories/guest`,
-  STORY_DETAIL: (id) => `${CONFIG.BASE_URL}/stories/${id}`,
+  REGISTER: `${BASE_URL}/register`,
+  LOGIN: `${BASE_URL}/login`,
+  STORIES: `${BASE_URL}/stories`,
+  STORIES_GUEST: `${BASE_URL}/stories/guest`,
+  STORY_DETAIL: (id) => `${BASE_URL}/stories/${id}`,
 };
 
 export async function register({ name, email, password }) {
