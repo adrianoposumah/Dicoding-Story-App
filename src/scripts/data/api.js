@@ -94,3 +94,37 @@ export async function addStoryAsGuest({ description, photo, lat, lon }) {
 
   return await response.json();
 }
+
+export async function subscribePushNotification({ endpoint, keys: { p256dh, auth } }) {
+  const authData = JSON.parse(localStorage.getItem('auth') || '{}');
+  const response = await fetch(`${BASE_URL}/notifications/subscribe`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${authData.token || ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      endpoint,
+      keys: {
+        p256dh,
+        auth,
+      },
+    }),
+  });
+
+  return await response.json();
+}
+
+export async function unsubscribePushNotification(endpoint) {
+  const authData = JSON.parse(localStorage.getItem('auth') || '{}');
+  const response = await fetch(`${BASE_URL}/notifications/subscribe`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${authData.token || ''}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ endpoint }),
+  });
+
+  return await response.json();
+}

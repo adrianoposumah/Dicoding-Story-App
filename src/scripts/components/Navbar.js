@@ -1,7 +1,41 @@
 import feather from 'feather-icons';
+import { getSubscriptionStatus, subscribe, unsubscribe } from '../utils/notification-helper';
 
 class NavBar extends HTMLElement {
-  connectedCallback() {
+  constructor() {
+    super();
+    this.subscriptionStatus = {
+      isAvailable: false,
+      isPermissionGranted: false,
+      isSubscribed: false,
+    };
+  }
+
+  async connectedCallback() {
+    await this.updateSubscriptionStatus();
+    this.render();
+    this.setupEventListeners();
+  }
+
+  async updateSubscriptionStatus() {
+    try {
+      this.subscriptionStatus = await getSubscriptionStatus();
+    } catch (error) {
+      console.error('Failed to get subscription status:', error);
+    }
+  }
+
+  async handleNotificationButtonClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (this.subscriptionStatus.isSubscribed) {
+      await unsubscribe();
+    } else {
+      await subscribe();
+    }
+
+    await this.updateSubscriptionStatus();
     this.render();
     this.setupEventListeners();
   }
@@ -9,6 +43,7 @@ class NavBar extends HTMLElement {
   render() {
     const isLoggedIn = localStorage.getItem('auth') !== null;
     const user = isLoggedIn ? JSON.parse(localStorage.getItem('auth')) : null;
+    const { isAvailable, isSubscribed } = this.subscriptionStatus;
 
     this.innerHTML = `
       <header class="sticky top-0 z-40 bg-background shadow-md">
@@ -33,7 +68,15 @@ class NavBar extends HTMLElement {
               ${
                 isLoggedIn
                   ? `
-                <li class="lg:ml-4">
+                <li class="lg:ml-4 flex items-center gap-3">
+                  ${
+                    isAvailable
+                      ? `<button id="notification-button" class="h-11 inline-flex items-center gap-2 ${isSubscribed ? 'bg-secondary text-white' : 'border border-primary text-primary'} text-sm px-4 py-2 rounded-md hover:bg-primary hover:text-white transition-colors duration-300" aria-label="${isSubscribed ? 'Unsubscribe from notifications' : 'Subscribe to notifications'}">
+                      <i data-feather="${isSubscribed ? 'bell-off' : 'bell'}" class="w-4 h-4" aria-hidden="true"></i> 
+                      ${isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+                    </button>`
+                      : ''
+                  }
                   <button id="logout-button" class="inline-flex items-center gap-2 bg-primary text-white text-sm px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-300" aria-label="Logout from account">
                     <i data-feather="log-out" class="w-4 h-4" aria-hidden="true"></i> Logout <span class="sr-only">from account</span> (${user ? user.name : ''})
                   </button>
@@ -67,6 +110,11 @@ class NavBar extends HTMLElement {
         window.location.hash = '#/';
         window.location.reload();
       });
+    }
+
+    const notificationButton = this.querySelector('#notification-button');
+    if (notificationButton) {
+      notificationButton.addEventListener('click', this.handleNotificationButtonClick.bind(this));
     }
 
     const drawerButton = this.querySelector('#drawer-button');

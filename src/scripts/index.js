@@ -1,6 +1,8 @@
 import '../styles/styles.css';
 import '../scripts/components/index.js';
 
+import App from './pages/app';
+import { registerServiceWorker } from './utils/index.js';
 import { isViewTransitionSupported } from './utils/view-transition';
 import { getActivePathname } from './routes/url-parser';
 
@@ -55,17 +57,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setupSkipLink();
 
-  const { default: App } = await import('./pages/app');
-  const app = new App({
-    content: document.querySelector('#main-content'),
-    drawerButton: document.querySelector('#drawer-button'),
-    navigationDrawer: document.querySelector('#navigation-drawer'),
-  });
+  try {
+    const app = new App({
+      content: document.querySelector('#main-content'),
+      drawerButton: document.querySelector('#drawer-button'),
+      navigationDrawer: document.querySelector('#navigation-drawer'),
+    });
 
-  await app.renderPage();
-
-  window.addEventListener('hashchange', async (event) => {
-    console.log('Hash changed:', window.location.hash);
     await app.renderPage();
-  });
+
+    window.addEventListener('hashchange', async () => {
+      console.log('Hash changed:', window.location.hash);
+      await app.renderPage();
+    });
+
+    await registerServiceWorker();
+  } catch (error) {
+    console.error('Failed to load application:', error);
+    document.querySelector('#main-content').innerHTML = `
+      <div class="error-container">
+        <h2>Application failed to load</h2>
+        <p>Please check your connection and try again.</p>
+      </div>
+    `;
+  }
 });
