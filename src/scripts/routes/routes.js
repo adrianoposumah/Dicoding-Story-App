@@ -5,6 +5,7 @@ import StoryDetailPage from '../pages/story-detail/story-detail-page';
 import AddStoryPage from '../pages/add-story/add-story-page';
 import SaveStory from '../pages/save-story/save-story-page';
 import SaveStoryDetail from '../pages/save-story-detail/save-story-detail-page';
+import NotFoundPage from '../pages/not-found/not-found-page';
 import { parseActivePathname } from './url-parser';
 
 const routes = {
@@ -13,6 +14,7 @@ const routes = {
   '/auth/signup': new SignUpPage(),
   '/add': new AddStoryPage(),
   '/save': new SaveStory(),
+  '/404': new NotFoundPage(),
 };
 
 export default function getPage() {
@@ -28,7 +30,7 @@ export default function getPage() {
 
   if (resource === 'auth' && verb) {
     const authPath = `/${resource}/${verb}`;
-    return routes[authPath] || routes['/'];
+    return routes[authPath] || new NotFoundPage();
   }
 
   const path = `/${resource || ''}`;
@@ -37,5 +39,5 @@ export default function getPage() {
     return new AddStoryPage();
   }
 
-  return routes[path] || routes['/'];
+  return routes[path] || new NotFoundPage();
 }
