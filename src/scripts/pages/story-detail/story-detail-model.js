@@ -1,4 +1,5 @@
 import { getStoryById } from '../../data/api';
+import StoryDB from '../../data/database';
 
 export default class StoryDetailModel {
   constructor() {
@@ -46,5 +47,34 @@ export default class StoryDetailModel {
     const isLoggedIn = localStorage.getItem('auth') !== null;
     const user = isLoggedIn ? JSON.parse(localStorage.getItem('auth')) : null;
     return { isLoggedIn, user };
+  }
+
+  async saveStory(story) {
+    try {
+      await StoryDB.saveStory(story);
+      return true;
+    } catch (error) {
+      console.error('Error saving story to database:', error);
+      return false;
+    }
+  }
+
+  async unsaveStory(storyId) {
+    try {
+      await StoryDB.deleteStory(storyId);
+      return true;
+    } catch (error) {
+      console.error('Error removing story from database:', error);
+      return false;
+    }
+  }
+
+  async isStorySaved(storyId) {
+    try {
+      return await StoryDB.isStorySaved(storyId);
+    } catch (error) {
+      console.error('Error checking if story is saved:', error);
+      return false;
+    }
   }
 }

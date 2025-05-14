@@ -104,6 +104,10 @@ export default class App {
       targetId = 'story-detail-container';
     } else if (currentPath === '/add') {
       targetId = 'add-story-form';
+    } else if (currentPath === '/save') {
+      targetId = 'saved-stories-container';
+    } else if (currentPath.startsWith('/savestories/')) {
+      targetId = 'story-detail-container';
     }
 
     skipLink.setAttribute('href', `#${targetId}`);

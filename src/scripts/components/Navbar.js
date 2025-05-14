@@ -65,6 +65,7 @@ class NavBar extends HTMLElement {
             </div>
             <ul id="nav-list" class="flex flex-col lg:flex-row gap-6 items-center">
               <li><a href="#/" class="text-secondary hover:text-primary transition-colors duration-300">Home</a></li>
+              ${isLoggedIn ? '<li><a href="#/save" class="text-secondary hover:text-primary transition-colors duration-300">Saved Stories</a></li>' : ''}
               ${
                 isLoggedIn
                   ? `

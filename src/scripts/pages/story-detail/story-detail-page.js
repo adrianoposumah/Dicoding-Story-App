@@ -16,6 +16,7 @@ export default class StoryDetailPage {
     this.supportsViewTransition = isViewTransitionSupported();
     this.storyId = null;
     this.map = null;
+    this.isSaved = false;
   }
 
   async fetchStory(id) {
@@ -25,6 +26,7 @@ export default class StoryDetailPage {
   updateStoryData(story) {
     this.story = story;
     this.renderStoryContent();
+    this.updateStoryUI();
   }
 
   updateLoadingState(isLoading) {
@@ -38,6 +40,34 @@ export default class StoryDetailPage {
 
   formatDate(dateString) {
     return this.presenter.formatDate(dateString);
+  }
+
+  updateSaveState(isSaved) {
+    this.isSaved = isSaved;
+    this.updateSaveButtonUI();
+  }
+
+  updateSaveButtonUI() {
+    const saveButton = document.getElementById('save-story-button');
+    if (!saveButton) return;
+
+    if (this.isSaved) {
+      saveButton.innerHTML = `
+        <i data-feather="bookmark" class="w-4 h-4" aria-hidden="true"></i> Unsave Story
+      `;
+      saveButton.classList.remove('border', 'border-primary', 'text-primary');
+      saveButton.classList.add('bg-primary', 'text-white');
+      saveButton.setAttribute('aria-label', 'Remove this story from saved stories');
+    } else {
+      saveButton.innerHTML = `
+        <i data-feather="bookmark" class="w-4 h-4" aria-hidden="true"></i> Save Story
+      `;
+      saveButton.classList.remove('bg-primary', 'text-white');
+      saveButton.classList.add('border', 'border-primary', 'text-primary');
+      saveButton.setAttribute('aria-label', 'Save this story to your collection');
+    }
+
+    feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }
 
   async render() {
@@ -138,6 +168,16 @@ export default class StoryDetailPage {
         <p>${this.story.description}</p>
       </div>
       
+      <div class="story-detail-actions flex justify-end mb-4">
+        <button 
+          id="save-story-button" 
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+          aria-label="Save this story to your collection"
+        >
+          <i data-feather="bookmark" class="w-4 h-4" aria-hidden="true"></i> Save Story
+        </button>
+      </div>
+      
       ${
         hasLocation
           ? `
@@ -175,6 +215,98 @@ export default class StoryDetailPage {
     feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }
 
+  updateStoryUI() {
+    const actionsContainer = document.querySelector('.story-detail-actions');
+    if (actionsContainer) {
+      let saveButton = document.getElementById('save-story-button');
+
+      if (!saveButton) {
+        saveButton = document.createElement('button');
+        saveButton.id = 'save-story-button';
+        saveButton.className =
+          'inline-flex items-center gap-2 px-4 py-2 rounded-md border border-primary text-primary hover:bg-primary hover:text-white transition-colors';
+        saveButton.setAttribute('aria-label', 'Save this story to your collection');
+        saveButton.innerHTML = `<i data-feather="bookmark" class="w-4 h-4" aria-hidden="true"></i> Save Story`;
+        actionsContainer.appendChild(saveButton);
+      }
+
+      const newSaveButton = saveButton.cloneNode(true);
+      saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+
+      newSaveButton.addEventListener('click', () => this.handleSaveButtonClick());
+
+      this.updateSaveButtonUI();
+    }
+
+    feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
+  }
+
+  async handleSaveButtonClick() {
+    if (!this.story) {
+      console.log('No story available to save');
+      return;
+    }
+
+    console.log('Save button clicked for story:', this.story.id);
+
+    const saveButton = document.getElementById('save-story-button');
+    if (!saveButton || saveButton.disabled) return;
+
+    saveButton.disabled = true;
+    const originalHTML = saveButton.innerHTML;
+    saveButton.innerHTML = `<span class="animate-spin mr-2" aria-hidden="true">⟳</span> Processing...`;
+
+    try {
+      const result = await this.presenter.toggleSaveStory(this.story);
+      console.log('Toggle save result:', result);
+      if (result.success) {
+        const message = result.isSaved
+          ? 'Story saved successfully!'
+          : 'Story removed from saved collection!';
+        this.showToast(message);
+      } else {
+        this.showToast('Failed to update saved status. Please try again.', true);
+      }
+    } catch (error) {
+      console.error('Error saving story:', error);
+      this.showToast('An error occurred while saving the story.', true);
+    } finally {
+      if (saveButton) {
+        saveButton.disabled = false;
+        this.updateSaveButtonUI();
+      }
+    }
+  }
+
+  showToast(message, isError = false) {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toast-container';
+      toastContainer.className = 'fixed bottom-4 right-4 z-50';
+      document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `p-4 rounded-md shadow-md mb-2 ${isError ? 'bg-red-500' : 'bg-green-500'} text-white transform transition-all duration-300 translate-y-full opacity-0`;
+    toast.textContent = message;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.remove('translate-y-full', 'opacity-0');
+    }, 10);
+
+    setTimeout(() => {
+      toast.classList.add('translate-y-full', 'opacity-0');
+      setTimeout(() => {
+        toastContainer.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+
   async afterRender() {
     if (!this.isLoggedIn) return;
 
@@ -183,6 +315,8 @@ export default class StoryDetailPage {
     if (storyId) {
       await this.fetchStory(storyId);
     }
+
+    this.updateStoryUI();
 
     feather.replace({ 'class': 'feather-icon', 'stroke-width': 2 });
   }

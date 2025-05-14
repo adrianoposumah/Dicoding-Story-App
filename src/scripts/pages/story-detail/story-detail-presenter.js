@@ -24,6 +24,9 @@ export default class StoryDetailPresenter {
         this.story = response.story;
         this.view.updateStoryData(this.story);
         this.model.saveStoryToSessionStorage(this.story);
+
+        const isSaved = await this.model.isStorySaved(id);
+        this.view.updateSaveState(isSaved);
       } else {
         this.error = response.message || 'Failed to fetch story';
         this.view.showError(this.error);
@@ -35,6 +38,25 @@ export default class StoryDetailPresenter {
     } finally {
       this.isLoading = false;
       this.view.updateLoadingState(false);
+    }
+  }
+
+  async toggleSaveStory(story) {
+    try {
+      const isSaved = await this.model.isStorySaved(story.id);
+
+      if (isSaved) {
+        await this.model.unsaveStory(story.id);
+        this.view.updateSaveState(false);
+        return { success: true, isSaved: false };
+      } else {
+        await this.model.saveStory(story);
+        this.view.updateSaveState(true);
+        return { success: true, isSaved: true };
+      }
+    } catch (error) {
+      console.error('Error toggling save state:', error);
+      return { success: false, isSaved: await this.model.isStorySaved(story.id) };
     }
   }
 
